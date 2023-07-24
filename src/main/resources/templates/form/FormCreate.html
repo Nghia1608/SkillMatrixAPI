@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<form id="myForm" action="/participant/formCreate" method="post">
+
+  <!-- Back button start -->
+  <div class="d-flex">
+    <h5>
+      <a href="" class="text-decoration-none d-flex mt-2 ms-5" style="color: grey">
+        <ion-icon class="mt-1" name="arrow-back-outline"></ion-icon>
+        <h5 class="ms-2">Back</h5>
+      </a>
+    </h5>
+    <button type="submit" class=" ms-auto me-5" style="border-radius:10px; background-color: darkgrey">
+      <a class="text-decoration-none fw-bold" style="color: white">Create Form</a>
+    </button>
+  </div>
+  <!-- Back button end -->
+  <!-- Body start -->
+  <div style="background-color:darkgrey; padding-top:10px; padding-bottom:100%;">
+    <!-- Describe start -->
+    <div class="d-flex justify-content-center mt-2">
+      <div class="form-control ms-5 me-5" style="background-color: lightgrey; border: 2px; padding: 10px; border-radius: 10px;">
+
+        <h3><input id="surveyName" type="text" style="padding-left:11px; border:none; background-color: lightgrey; width:1000px;" placeholder="Survey Name"></h3>
+
+      </div>
+    </div>
+    <!-- Describe end -->
+    <!-- Survey setting start -->
+    <div class="d-flex justify-content-center mt-2">
+      <div class="form-control ms-5 me-5" style="background-color: lightgrey; border: 2px; padding: 10px; border-radius: 10px; margin-top:10px;">
+        <form action="">
+          <div class="mt-1">
+            <label class="fw-bold h5">Survey deadline</label>
+            <input id="surveyDeadline" style="border-radius:10px;" class="form-control" type="date">
+          </div>
+          <div class="mt-1">
+            <label class="fw-bold h5">Room survey</label>
+            <input id="roomSearchBar" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+            <input disabled id="roomSurvey" style="border-radius:10px;" placeholder="Selected rooms" class="form-control" type="text">
+            <ul id="roomSuggestions"></ul>
+          </div>
+          <div class="mt-1">
+            <label class="fw-bold h5">Team survey</label>
+            <input id="teamSearchBar" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+            <input disabled id="teamSurvey" style="border-radius:10px;" placeholder="Selected teams" class="form-control" type="text">
+            <ul id="teamSuggestions"></ul>
+          </div>
+          <div class="mt-1">
+            <label class="fw-bold h5">Project survey</label>
+            <input id="projectSearchBar" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+            <input disabled id="projectSurvey" style="border-radius:10px;" placeholder="Selected project" class="form-control" type="text">
+            <ul id="projectSuggestions"></ul>
+          </div>
+          <div class="mt-1">
+            <label class="fw-bold h5">Member survey</label>
+            <input id="memSearchBar" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+            <input disabled id="memberSurvey" style="border-radius:10px;" placeholder="Selected members" class="form-control" type="text">
+            <ul id="memberSuggestions"></ul>
+          </div>
+          <div class="mt-1">
+            <label class="fw-bold h5">Skill domain</label>
+            <input id="skillSearchBar" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+            <input disabled id="skillDomain" style="border-radius:10px;" placeholder="Selected skill domain" class="form-control" type="text">
+            <ul id="skillSuggestions"></ul>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Survey setting end -->
+  </div>
+  <!-- Body end -->
+</form>
+<!--Ionicon script start -->
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+
+<!--Ionicon end-->
+<script >
+
+  // Get form data
+
+  // Model attributes
+  let listSkillDomain=""
+  let listTeam=""
+  let listProject=""
+  let listMember=""
+  let listRoom=""
+
+  getListSkillDomain()
+  function getListSkillDomain() {
+    $.ajax({
+      url: '/skillDomain/listAllSkillDomain', // Update the URL to your endpoint for fetching owner forms
+      type: 'GET',
+      success: function(data) {
+        // Update the table content with the new data
+        listSkillDomain = data.map(function(domain) {
+          return domain.domainName;
+        });
+      },
+      error: function(xhr, status, error) {
+        // Handle error, if any
+        console.error(error);
+      }
+    });
+  }
+  listAllMember()
+  function listAllMember() {
+    $.ajax({
+      url: '/participant/getListMember', // Update the URL to your endpoint for fetching owner forms
+      type: 'GET',
+      success: function(data) {
+        // Update the table content with the new data
+        listMember = data.map(function(member) {
+          return member.username;
+        });
+      },
+      error: function(xhr, status, error) {
+        // Handle error, if any
+        console.error(error);
+      }
+    });
+  }
+  listAllTeam()
+  function listAllTeam() {
+    $.ajax({
+      url: '/team/listAllTeam', // Update the URL to your endpoint for fetching owner forms
+      type: 'GET',
+      success: function(data) {
+        // Update the table content with the new data
+        listTeam = data.map(function(team) {
+          return team.teamName;
+        });
+      },
+      error: function(xhr, status, error) {
+        // Handle error, if any
+        console.error(error);
+      }
+    });
+  }
+  listAllProject()
+  function listAllProject() {
+    $.ajax({
+      url: '/project/getAllProject', // Update the URL to your endpoint for fetching owner forms
+      type: 'GET',
+      success: function(data) {
+        // Update the table content with the new data
+        listProject = data.map(function(project) {
+          return project.projectName;
+        });
+      },
+      error: function(xhr, status, error) {
+        // Handle error, if any
+        console.error(error);
+      }
+    });
+  }
+  listAllRoom()
+  function listAllRoom() {
+    $.ajax({
+      url: '/room/getListRoom', // Update the URL to your endpoint for fetching owner forms
+      type: 'GET',
+      success: function(data) {
+        // Update the table content with the new data
+        listRoom = data.map(function(room) {
+          return room.roomName;
+        });
+      },
+      error: function(xhr, status, error) {
+        // Handle error, if any
+        console.error(error);
+      }
+    });
+  }
+  // Function to filter suggestions based on input
+  function filterSuggestions(input, list) {
+    // const filteredList = list.filter(item => item.toLowerCase().includes(input.toLowerCase()));
+    const filteredList = list.filter(item => item && item.toLowerCase().includes(input.toLowerCase()));
+
+    return filteredList;
+  }
+
+  // Function to display suggestions in the corresponding ul element
+  function showSuggestions(inputId, suggestionsId, list) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+    const inputValue = input.value;
+    const filteredList = filterSuggestions(inputValue, list);
+
+    suggestions.innerHTML = ''; // Clear previous suggestions
+
+    if (inputValue !== '') {
+      filteredList.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        suggestions.appendChild(li);
+      });
+    }
+  }
+
+  // Event listeners for input fields
+  document.getElementById('roomSearchBar').addEventListener('input', () => {
+    showSuggestions('roomSearchBar', 'roomSuggestions', listRoom);
+  });
+
+  document.getElementById('teamSearchBar').addEventListener('input', () => {
+    showSuggestions('teamSearchBar', 'teamSuggestions', listTeam);
+  });
+  document.getElementById('projectSearchBar').addEventListener('input', () => {
+    showSuggestions('projectSearchBar', 'projectSuggestions', listProject);
+  });
+  document.getElementById('memSearchBar').addEventListener('input', () => {
+    showSuggestions('memSearchBar', 'memberSuggestions', listMember);
+  });
+
+  document.getElementById('skillSearchBar').addEventListener('input', () => {
+    showSuggestions('skillSearchBar', 'skillSuggestions', listSkillDomain);
+  });
+  // Function to append selected suggestion to the input
+  function appendToInput(inputId, suggestion) {
+    const input = document.getElementById(inputId);
+    input.value += (input.value !== '' ? ', ' : '') + suggestion;
+  }
+
+  // Event listeners for suggestion selection
+  document.getElementById('teamSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    appendToInput('teamSurvey', selectedSuggestion);
+  });
+  document.getElementById('projectSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    appendToInput('projectSurvey', selectedSuggestion);
+  });
+  document.getElementById('roomSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    appendToInput('roomSurvey', selectedSuggestion);
+  });
+
+  document.getElementById('memberSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    appendToInput('memberSurvey', selectedSuggestion);
+  });
+
+  document.getElementById('skillSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    appendToInput('skillDomain', selectedSuggestion);
+  });
+</script>
+
+<script>
+  document.getElementById('myForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent form submission
+    // Send the data to the controller as JSON
+    const formData = {
+      surveyName: document.getElementById("surveyName").value,
+      surveyDeadline: document.getElementById('surveyDeadline').value,
+      roomSurvey: document.getElementById('roomSurvey').value,
+      teamSurvey: document.getElementById('teamSurvey').value,
+      projectSurvey: document.getElementById('projectSurvey').value,
+      memberSurvey: document.getElementById('memberSurvey').value,
+      skillDomain: document.getElementById('skillDomain').value
+    };
+    console.log(formData)
+    fetch('/participant/formCreate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+            .then(response => {
+              // Check if the response status is 200 OK
+              if (response) {
+                window.location.replace("http://localhost:8080/participant/home");
+              } else {
+                alert("Error !!!");
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+  });
+</script>
+</body>
+</html>

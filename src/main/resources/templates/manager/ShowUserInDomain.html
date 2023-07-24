@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>List user in skill domain</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<table class="table table-bordered table-striped">
+  <thead class="table-light">
+  <tr>
+    <td>Rate</td>
+    <td class="text-center">Definition</td>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>0</td>
+    <td>Don't know</td>
+  </tr>
+  <tr>
+    <td>1</td>
+    <td>Awareness - a person has a basic knowledge and understanding of the topic but hasn’t yet applied the skill at work</td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td>Novice - a person has applied the skill, but might still need support</td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td>Professional - a person has experience of utilizing the skill and can work independently. Solves problems proactively. Can guide and support more junior people performing related tasks</td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td>Expert - a person has a lot of experience in applying the skill in practice. Can communicate with customers about the topic and can coach others. Follows the trends of the field and shares knowledge with colleagues. Might have an official certification in the skill</td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td>Leading-edge expert - a person understands the bigger picture. Can discuss details with the customer and advise the customer. Shares knowledge proactively, by, e.g.training, sharing with team, hackathon... Follows the field and keeps the skill up to date</td>
+  </tr>
+  </tbody>
+</table>
+
+</body>
+<script>
+  $(document).ready(function() {
+    var url = window.location.href;
+    var formID = url.substring(url.lastIndexOf("/") + 1);
+    loadManagerByMeForms()
+    function loadManagerByMeForms() {
+      $.ajax({
+        url: '/manager/getUserRateInForm/'+formID, // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          console.log(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+  });
+</script>
+</html>

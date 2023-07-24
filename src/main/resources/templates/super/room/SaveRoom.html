@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matrix</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+    <div class="nav container">
+        <div>
+            <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+                Skill Matrix tool
+            </a>
+        </div>
+        <div class="row">
+            <div class="col ms-0 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+                <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+                    <h6 class="dropdown-header">Notifications</h6>
+                    <div id="notificationList" class="list-group"></div>
+                </div>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+            </div>
+        </div>
+    </div>
+</nav>
+<form th:action="@{/room/save}" method="post" th:object="${newRoom}">
+    <input type="hidden" th:if="${newRoom.roomID}" th:field="*{roomID}">
+    <label>Room name :</label>
+    <input type="text" placeholder="Room name here" th:field="*{roomName}">
+    <label>Contained by :</label>
+    <input type="hidden" placeholder="Room name here" th:field="*{containRoom}" value="${newRoom.containRoom.roomName}">
+    <input type="text" disabled placeholder="Room name here" th:field="${newRoom.containRoom.roomName}">
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>

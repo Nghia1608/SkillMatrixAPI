@@ -1,0 +1,234 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Skill Matrix</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+
+
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+
+        <h4><a href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="h2 text-center fw-bold">List of selected members:</div>
+<form id="searchForm">
+  <div>The users has already in this form will not be displayed</div>
+  <input type="text" id="searchBox" placeholder="Search...">
+  <input type="submit" value="Search">
+  <div id="searchResults"></div>
+</form>
+<form id="myForm" method="post" action="/participant/addInvitedMemberToForm">
+  <ul id="memberList" class="list-group">
+  </ul>
+  <input type="submit" value="Add members">
+</form>
+<button> <a id="addTeamLink" class="text-decoration-none text-black" href="">Add teams</a></button>
+<button> <a id="addProjectLink" class="text-decoration-none text-black" href="">Add project teams</a></button>
+<button> <a id="addRoomLink"class="text-decoration-none text-black" href="">Add a room's teams</a></button>
+<h3 class="text-center">Member in your form</h3>
+
+<table class="table table-light table-bordered">
+  <thead>
+  <tr>
+    <th>Username</th>
+    <th>Email</th>
+  </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+<script>
+  let memberSurvey = '';
+  $(document).ready(function() {
+    var searchForm = $('#searchForm');
+    var searchBox = $('#searchBox');
+    var searchResults = $('#searchResults');
+    var memberList = $('#memberList');
+    var resultList = []; // Array to store the selected search results
+    const url = window.location.href;
+    const segments = url.split('/');
+    const formID = segments[segments.length - 1];
+
+    //Add href to link add team, project, room
+    document.getElementById("addTeamLink").href = '/participant/form/'+formID+'/addTeam'
+    document.getElementById("addProjectLink").href = '/participant/form/'+formID+'/addProject'
+    document.getElementById("addRoomLink").href = '/participant/form/'+formID+'/addRoom'
+
+    searchForm.on('submit', function(event) {
+      event.preventDefault();
+      var query = searchBox.val();
+      if (query.length >= 1) {
+        $.ajax({
+          type: 'GET',
+          url: '/participant/searchUserNotInForm',
+          data: { query: query,formID : formID },
+          success: function(data) {
+            if (data.length > 0) {
+              displayDropdown(data); // Display the dropdown with search results
+            } else {
+              searchResults.html('<div class="result">No results found.</div>');
+            }
+          }
+        });
+      }
+    });
+
+    function displayDropdown(data) {
+      searchResults.html(''); // Clear the search results container
+
+      var dropdownList = $('<ul class="list-group">'); // Create a new <ul> element
+
+      data.forEach(function(result) {
+        var listItem = $('<li class="list-group-item">').text(result.email + ' - ' + result.username); // Create a new <li> element with the email as text
+        listItem.addClass('result-item'); // Add a class to the list item for event binding
+        listItem.click(function() {
+          if (!isItemInList(result)) {
+            addItem(result); // Add the selected item to the list group
+          }
+        });
+
+        dropdownList.append(listItem); // Append the list item to the dropdown
+      });
+
+      searchResults.append(dropdownList); // Append the dropdown to the search results container
+    }
+
+    function addItem(item) {
+      resultList.push(item); // Add the selected item to the resultList array
+      displayResults(); // Redisplay the updated list group
+      if(memberSurvey!=''){
+        memberSurvey += ',' + item.user_id
+      }else {
+        memberSurvey += item.user_id;
+
+      }
+    }
+    function displayResults() {
+      memberList.html(''); // Clear the member list container
+
+      if (resultList.length > 0) {
+        resultList.forEach(function(result) {
+          var listItem = $('<li class="list-group-item">').text(result.email + ' - ' + result.username); // Create a new <li> element with the email as text
+          var deleteButton = $('<button class="btn btn-danger btn-sm float-end delete-btn">Delete</button>'); // Create the delete button
+          deleteButton.click(function() {
+            deleteItem(result);
+          });
+
+          listItem.append(deleteButton); // Append the delete button to the list item
+          memberList.append(listItem); // Append the list item to the member list
+        });
+      } else {
+        memberList.html('<li class="list-group-item">No items in the list</li>');
+      }
+    }
+
+    function deleteItem(item) {
+      var index = resultList.indexOf(item);
+      if (index > -1) {
+        resultList.splice(index, 1); // Remove the item from the resultList array
+        displayResults(); // Redisplay the updated list group
+      }
+    }
+    function isItemInList(item) {
+      // Check if the item already exists in the resultList array
+      return resultList.some(function(result) {
+        return result.email === item.email;
+      });
+    }
+
+    //Show user has in form
+    loadShowUserInForm()
+    function loadShowUserInForm() {
+      $.ajax({
+        url: '/participant/getInvitedMemberInForm/'+formID, // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    function updateTable(forms) {
+      var tableBody = $('table.table-bordered tbody');
+      tableBody.empty(); // Clear existing table rows
+      forms.forEach(function(form) {
+        var row = '<tr>' +
+                '<td>' + form.username + '</td>' +
+                '<td>' + form.email + '</td>' +
+                '</tr>';
+        tableBody.append(row);
+      });
+    }
+  });
+
+  document.getElementById('myForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const url = window.location.href;
+    const segments = url.split('/');
+    const formID = segments[segments.length - 1];
+    const formData = {
+      memberSurvey : memberSurvey,
+      formID : formID
+    };
+
+    fetch('/participant/addInvitedMemberToForm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+            .then(response => {
+              // Check if the response status is 200 OK
+              if (response) {
+                window.location.replace("http://localhost:8080/participant/home");
+              } else {
+                alert("Error !!!");
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+  });
+</script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

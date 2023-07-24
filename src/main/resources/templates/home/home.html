@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Form filling</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- Navbar End -->
+
+<!-- Button start -->
+<div class=" d-flex justify-content-center">
+
+  <button  class=" btn btn-lg bg-gray m-3" style="background-color:darkgrey">
+    <a href="/participant/formCreate" class="text-decoration-none text-white">
+      <h2 class="d-flex justify-content-center"><ion-icon name="add-outline" style="color: white;"></ion-icon></h2>
+      <div class="text-white">CREATE FORM</div>
+    </a>
+
+  </button>
+  <button id="uploadFormBtn" class=" btn btn-lg bg-gray m-3" style="background-color:darkgrey">
+    <h2><ion-icon name="arrow-up-outline" style="color: white;"></ion-icon></h2>
+    <div class="text-white">UPLOAD FORM</div>
+  </button>
+</div>
+<!-- Button end -->
+
+<!-- Form list start -->
+<div>
+  <div>
+    <div class="container d-flex" style="background-color: darkgrey;">
+      <div class="text-decoration-none fs-5 fw-bolder text-white text-center m-3">FORM SURVEY</div>
+      <div class="ms-auto m-3 me-5 d-flex">
+        <input type="text" placeholder="Text" class="ms-2 border-white input-group-text" style="border-radius: 10px; background-color: darkgrey;">
+        <a href="#" style="color: inherit;" class="ms-2 d-flex align-items-center">
+          <ion-icon name="search-outline"></ion-icon>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container container-fluid">
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+      <div class="collapse navbar-collapse d-flex justify-content-center">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a id="assignMe"class="nav-link fw-bold fs-5 m-2" style="color: gray" href="/participant/formManager">Assign me</a>
+          </li>
+          <li class="nav-item">
+            <a id="ownerByMeLink" class="nav-link fw-bold fs-5 m-2" style="color: white" href="/menu/list">Owner by me</a>
+          </li>
+          <li class="nav-item">
+            <a id="managerByMeLink"class="nav-link fw-bold fs-5 m-2" style="color: white" href="/reservation/list">Manager</a>
+          </li>
+          <li class="nav-item ml-auto"> <!-- Added ml-auto class to align to the right -->
+            <div class="form-group">
+              <input type="text" class="form-control m-3 ms-2" placeholder="Search">
+            </div>
+          </li>
+          <button type="submit" class="btn btn-default m-3" style="border: 1px solid black;">Search</button>
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <table class="table table-bordered" style="font-size: 16px">
+    <thead class="thead-light">
+    <tr>
+      <th>Form Name</th>
+      <th>Create Date</th>
+      <td></td>
+      <td></td>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+</div>
+<script>
+  $(document).ready(function() {
+    loadAssignByMeForms()
+    // Handle "Owner by me" link click event
+    $('#assignMe').click(function(event) {
+      event.preventDefault(); // Prevent default link behavior
+      loadAssignByMeForms(); // Call a function to load the owner forms via AJAX
+      $(this).css('color', 'gray');
+      $('#ownerByMeLink').css('color', 'white');
+      $('#managerByMeLink').css('color', 'white')
+    });
+
+    function loadAssignByMeForms() {
+      $.ajax({
+        url: '/participant/getFormParticipant', // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    function updateTable(forms) {
+      var tableBody = $('table.table-bordered tbody');
+      tableBody.empty(); // Clear existing table rows
+      forms.forEach(function(form) {
+        var row = '<tr>' +
+                '<td>' + form.formName + '</td>' +
+                '<td>' + form.createDate + '</td>' +
+                '<td><a href="/participant/form/' + form.formID + '">View</a></td>' +
+                // '<td><a href="/participant/inviteMemberToForm/' + form.formID + '">Invite member</a></td>' +
+                '</tr>';
+        tableBody.append(row);
+      });
+    }
+  });
+
+</script>
+<script>
+  $(document).ready(function() {
+    // Handle "Owner by me" link click event
+    $('#ownerByMeLink').click(function(event) {
+      event.preventDefault(); // Prevent default link behavior
+      loadOwnerByMeForms(); // Call a function to load the owner forms via AJAX
+      $(this).css('color', 'gray');
+      $('#assignMe').css('color', 'white');
+      $('#managerByMeLink').css('color', 'white')
+    });
+
+    function loadOwnerByMeForms() {
+      $.ajax({
+        url: '/participant/getFormOwner', // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    function updateTable(forms) {
+      var tableBody = $('table.table-bordered tbody');
+      tableBody.empty(); // Clear existing table rows
+      forms.forEach(function(form) {
+        var row = '<tr>' +
+                '<td>' + form.formName + '</td>' +
+                '<td>' + form.createDate + '</td>' +
+                '<td><a href="/manager/formTest/' + form.formID + '">View</a></td>' +
+                '<td><a href="/participant/inviteMemberToForm/' + form.formID + '">Invite member</a></td>' +
+                '</tr>';
+        tableBody.append(row);
+      });
+    }
+  });
+
+</script>
+<script>
+  $(document).ready(function() {
+    // Handle "Owner by me" link click event
+    $('#managerByMeLink').click(function(event) {
+      event.preventDefault(); // Prevent default link behavior
+      loadManagerByMeForms(); // Call a function to load the owner forms via AJAX
+      $(this).css('color', 'gray');
+      $('#assignMe').css('color', 'white');
+      $('#ownerByMeLink').css('color', 'white');
+    });
+
+    function loadManagerByMeForms() {
+      $.ajax({
+        url: '/participant/getFormManager', // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    function updateTable(forms) {
+      var tableBody = $('table.table-bordered tbody');
+      tableBody.empty(); // Clear existing table rows
+
+      forms.forEach(function(form) {
+        var row = '<tr>' +
+                '<td>' + form.formName + '</td>' +
+                '<td>' + form.createDate + '</td>' +
+                // '<td><a href="/participant/form/' + form.formID + '">View</a></td>' +
+                '<td><a href="/manager/form/' + form.formID + '">View In Manager</a></td>' +
+                '<td><a href="/participant/inviteMemberToForm/' + form.formID + '">Invite member</a></td>' +
+
+                '</tr>';
+        tableBody.append(row);
+      });
+    }
+  });
+</script>
+
+<div id="uploadPopup" style="display: none;">
+  <div id="dropZone" style="border: 2px dashed #ccc; padding: 20px; text-align: center;">
+    <form id="uploadForm" action="/excel/read" method="post" enctype="multipart/form-data">
+      <label class="h3">File upload</label>
+      <input id="inputFile" type="file" name="file" placeholder="input your file here">
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+    $('#uploadFormBtn').click(function() {
+      $('#uploadPopup').show();
+    });
+    const form = document.getElementById('uploadForm');
+    form.addEventListener('submit', handleFormSubmit);
+    function handleFormSubmit(event) {
+      event.preventDefault();
+
+      const fileInput = document.getElementById('inputFile');
+      const file = fileInput.files[0];
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      uploadFile(formData);
+      $('#uploadPopup').hide();
+    }
+    function uploadFile(formData) {
+      fetch('/excel/read', {
+        method: 'POST',
+        body: formData
+      })
+              .then(response => response.json())
+              .then(data => {
+                window.location.replace("http://localhost:8080/participant/home");
+              })
+              .catch(error => {
+                // Handle any errors
+                console.error('Error:', error);
+              });
+    }
+  });
+</script>
+<script>
+
+</script>
+<script>
+  $(document).ready(function() {
+    // Handle "Notification" link click event
+    $('#notificationLink').click(function(event) {
+      event.preventDefault(); // Prevent default link behavior
+      loadNotifications(); // Load notifications via AJAX
+    });
+
+    // Handle clicking outside the dropdown to close it
+    $(document).on('click', function(event) {
+      var target = $(event.target);
+      if (!target.closest('#notificationDropdown').length && !target.is('#notificationLink')) {
+        $('#notificationDropdown').hide();
+      }
+    });
+
+    function loadNotifications() {
+      $.ajax({
+        url: '/participant/getNotification', // Update the URL to your endpoint for fetching notifications
+        type: 'GET',
+        success: function(data) {
+          // Render the dropdown with the received data
+          renderNotifications(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    function renderNotifications(notifications) {
+      var dropdown = $('#notificationDropdown');
+      dropdown.empty(); // Clear existing dropdown content
+
+      if (notifications.length === 0) {
+        dropdown.html('<p>No notifications</p>');
+      } else {
+        var list = $('<ul></ul>');
+        notifications.forEach(function(notification) {
+          var listItem = $('<li></li>');
+          var link = $('<a></a>').text(notification.issue);
+          link.attr('href', notification.link);
+          console.log('Notification: ', notification); // Check the notification object in the console
+          console.log('Link: ', notification.link); // Check the link value in the console
+          console.log('Href: ', link.attr('href')); // Check the href attribute in the console
+          listItem.append(link);
+          list.append(listItem);
+        });
+        dropdown.append(list);
+      }
+
+
+      // Show the dropdown
+      dropdown.show();
+      var buttonOffset = $('#notificationLink').offset();
+      var buttonWidth = $('#notificationLink').outerWidth();
+      var dropdownWidth = dropdown.outerWidth();
+      var dropdownHeight = dropdown.outerHeight();
+      var dropdownLeft = buttonOffset.left - dropdownWidth + buttonWidth;
+      var dropdownTop = buttonOffset.bottom - dropdownHeight;
+      dropdown.css({ left: dropdownLeft, bottom: dropdownTop });
+    }
+  });
+</script>
+<style>
+  /* ...existing styles... */
+
+  /* Custom styles for the notification dropdown */
+  #notificationDropdown {
+    position: absolute;
+    min-width: 250px;
+    left: 0;
+    top: 0;
+  }
+  .dropdown ul li:not(:last-child) {
+    border-bottom: 1px solid #ccc;
+  }
+</style>
+<style>
+  #uploadPopup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #dropZone {
+    background-color: #fff;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 10px;
+  }
+</style>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

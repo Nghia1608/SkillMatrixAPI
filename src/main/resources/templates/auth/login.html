@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matrix</title>
+</head>
+<body style="background-color: bisque">
+<div class="text-center mt-4">
+    <h1 class="text-primary">Đăng nhập</h1>
+    <h5>Bạn phải đăng nhập trước khi vào trang web</h5>
+    <div class="alert-danger">
+    </div>
+    <form id="formLogin"  style="background-color: darkgrey" class="form-control" action="/auth/authenticate" method="post">
+        <div>
+            <label class="h5 fw-bold">Tài khoản :</label>
+            <input id="username" type="text" placeholder="Username" required>
+        </div>
+        <div>
+            <label class="h5 fw-bold m-1">Mật khẩu :</label>
+            <input id="password" type="text" placeholder="Password" required>
+        </div>
+        <button class="btn-secondary m-3" type="submit">Đăng nhập</button>
+    </form>
+
+    <!-- Minified CSS and JS -->
+    <link   rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+            integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+            crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous">
+    </script>
+    <div class="text-center">
+        <label>Chưa có tài khoản?</label>
+        <a th:href="@{/register}">Click vào đây</a>
+    </div>
+</div>
+</body>
+<script>
+    document.getElementById('formLogin').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        // Get form data
+        const formData = {
+            username: document.getElementById("username").value,
+            password: document.getElementById('password').value,
+        };
+
+        // Send the data to the controller as JSON
+        fetch('/auth/authenticate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.replace("http://localhost:8080/participant/home");
+            } else {
+                alert("Incorrect username or password !!!");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+</script>
+</html>

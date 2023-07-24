@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Form Filling</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+    <div class="nav container">
+        <div>
+            <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+                Skill Matrix tool
+            </a>
+        </div>
+        <div class="row">
+            <div class="col ms-0 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+                <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+                    <h6 class="dropdown-header">Notifications</h6>
+                    <div id="notificationList" class="list-group"></div>
+                </div>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+            </div>
+        </div>
+    </div>
+</nav>
+<h1 class="text-center text-primary mt-4">SOLF SKILL</h1>
+<h4 class="text-center text-primary mt-4">Guide</h4>
+<table class="table table-header table-striped">
+    <thead class="table-light">
+        <tr>
+            <td>Rate</td>
+            <td class="text-center">Definition</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>0</td>
+            <td>Don't know</td>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Awareness - a person has a basic knowledge and understanding of the topic but hasn’t yet applied the skill at work</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Novice - a person has applied the skill, but might still need support</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Professional - a person has experience of utilizing the skill and can work independently. Solves problems proactively. Can guide and support more junior people performing related tasks</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Expert - a person has a lot of experience in applying the skill in practice. Can communicate with customers about the topic and can coach others. Follows the trends of the field and shares knowledge with colleagues. Might have an official certification in the skill</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>Leading-edge expert - a person understands the bigger picture. Can discuss details with the customer and advise the customer. Shares knowledge proactively, by, e.g.training, sharing with team, hackathon... Follows the field and keeps the skill up to date</td>
+        </tr>
+    </tbody>
+</table>
+<div  class="d-flex justify-content-center">
+    <form id="myForm"  method="post" >
+        <table class="table table-bordered" style="font-size: 16px">
+            <thead class="thead-light">
+            <tr>
+                <th>Skill Name</th>
+                <th>Rate</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-center">
+            <input class="btn btn-secondary btn-lg m-3" type="button" onclick="Cancel()" value="Cancel">
+            <input class="btn btn-primary btn-lg m-3" type="submit" value="Submit">
+        </div>
+    </form>
+</div>
+</body>
+<script>
+    const url = window.location.href;
+    const numberRegex = /\/(\d+)\/domainID\/(\d+)\/userID\/(\d+)/;
+    const matches = url.match(numberRegex);
+    let formID,domainID,userID
+    if (matches && matches.length > 3) {
+        formID = matches[1];
+        domainID = matches[2];
+        userID = matches[3];
+    }
+    $(document).ready(function() {
+// Extract the dynamic values from the URL
+        loadDomains()
+        function loadDomains() {
+            $.ajax({
+                url: '/manager/form/'+formID+'/getSkill/'+domainID+'/userID/'+userID, // Update the URL to your endpoint for fetching owner forms
+                type: 'GET',
+                success: function(data) {
+                    // Update the table content with the new data
+                    updateTable(data);
+                },
+                error: function(xhr, status, error) {
+                    // Handle error, if any
+                    console.error(error);
+                }
+            });
+        }
+
+        function updateTable(forms) {
+            var tableBody = $('table.table-bordered  tbody');
+            tableBody.empty(); // Clear existing table rows
+            forms[0].forEach(function(item,index) {
+                var row =
+                    '<tr>' +
+                    '<th>' + item.skillName + '</th>' +
+                    '<td><input id="rate" type="number" class="mx-3" max="5" min="0" value="'+(forms[1][index] ? forms[1][index].managerRate : 0)+'"></td>' +
+                    '<td><input id="skillID" type="text"hidden value="'+item.skill_id+'"></td>'+
+                    '</tr>';
+                tableBody.append(row);
+            });
+        }
+    });
+
+    document.getElementById('myForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+        const url = window.location.href;
+// Extract the dynamic values using regular expressions
+        const participantIdRegex = /form\/(\d+)/;
+        const participantIdMatch = url.match(participantIdRegex);
+// Check if matches are found before accessing the captured values
+        var formID = participantIdMatch ? participantIdMatch[1] : null;
+        // Get form data
+        var listSkill = []
+        var listRate = []
+        $('[id=skillID]').each(function() {
+            listSkill.push($(this).val());
+        });
+        $('[id=rate]').each(function() {
+            listRate.push($(this).val());
+        });
+        const formData = {
+            skillID: listSkill.map(String).join(','),
+            rate: listRate.map(String).join(','),
+            formID : formID,
+            userIDToSubmit : userID
+        };
+        console.log(formData)
+        fetch('/manager/submitManagerRate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                // Check if the response status is 200 OK
+                if (response) {
+                    window.location.replace("http://localhost:8080/participant/home");
+                } else {
+                    alert("Error !!!");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+</html>

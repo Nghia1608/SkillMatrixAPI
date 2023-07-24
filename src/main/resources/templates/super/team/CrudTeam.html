@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matrix</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+    <div class="nav container">
+        <div>
+            <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+                Skill Matrix tool
+            </a>
+        </div>
+        <div class="row">
+            <div class="col ms-0 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+                <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+                    <h6 class="dropdown-header">Notifications</h6>
+                    <div id="notificationList" class="list-group"></div>
+                </div>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container container-fluid">
+<h3>Crud Team</h3>
+<table class="table table-light table-bordered">
+    <thead>
+    <tr>
+        <th>Team ID</th>
+        <th>Team Name</th>
+        <th>Status</th>
+        <td></td>
+        <td></td>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="team : ${listTeam}">
+        <tr>
+            <td th:text="${team.teamID}"></td>
+            <td th:text="${team.teamName}"></td>
+            <td th:if="${team.status} == true">Enable</td>
+            <td th:if="${team.status} == false">Disable</td>
+            <td th:if="${team.status} == true"><a class="h6 text-decoration-none" th:href="@{'/team/disable/'+ ${team.teamID}}">Click to Disable</a></td>
+            <td th:if="${team.status} == false"><a class="h6 text-decoration-none" th:href="@{'/team/enable/'+ ${team.teamID}}">Click to Enable</a></td>
+            <td><a class="h6 text-decoration-none" th:href="@{'/team/edit/'+ ${team.teamID}}">Edit - Add member</a></td>
+
+        </tr>
+    </th:block>
+    </tbody>
+</table>
+</div>
+</body>
+<script>
+    $(document).ready(function() {
+        showListTeam()
+        function showListTeam() {
+            $.ajax({
+                url: '/team/getAllTeam', // Update the URL to your endpoint for fetching owner forms
+                type: 'GET',
+                success: function(data) {
+                    // Update the table content with the new data
+                    updateTable(data);
+                },
+                error: function(xhr, status, error) {
+                    // Handle error, if any
+                    console.error(error);
+                }
+            });
+        }
+
+        function updateTable(teams) {
+            var tableBody = $('table.table-bordered tbody');
+            tableBody.empty(); // Clear existing table rows
+            teams.forEach(function(team) {
+                var status;
+                var linkToDisOrEnable
+                if (team.status) {
+                    inviteLink = '<a href="/participant/inviteMemberToForm/' + form.formID + '">Invite member</a>';
+                    linkToDisOrEnable = '<a href="/participant/inviteMemberToForm/' + form.formID + '">Invite member</a>';
+                } else {
+                    inviteLink = '<a href="/participant/ok/' + form.formID + '">Invite member</a>';
+                }
+                var row = '<tr>' +
+                    '<td>' + team.teamID + '</td>' +
+                    '<td>' + team.teamName + '</td>' +
+                    '<td>'+inviteLink+'</td>' +
+                    '<td><a href="/team/edit/' + team.teamID + '">Edit - Add member</a></td>' +
+                    '</tr>';
+                tableBody.append(row);
+            });
+        }
+    });
+
+</script>
+</html>

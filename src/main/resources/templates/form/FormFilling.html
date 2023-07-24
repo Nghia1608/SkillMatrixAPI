@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" xmlns:th="http://www.thymeleaf.org">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    a {
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body style="background-color:lightgrey">
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- Navbar End -->
+<!-- Back button start -->
+<div th:if="${messageError}" class="alert alert-danger text-center bg-gradient">[[${messageError}]]</div>
+<div class="d-flex">
+  <h5>
+    <a href="" class="text-decoration-none d-flex mt-2 ms-5" style="color: grey">
+      <ion-icon class="mt-1" name="arrow-back-outline"></ion-icon>
+      <h5 class="ms-2">Back</h5>
+    </a>
+  </h5>
+  <button class="ms-auto me-5 m-2" type="submit" style="width:50px; height:35px; border-radius:10px;">
+    Edit
+  </button>
+</div>
+<!-- Back button end -->
+<!-- User rate view start-->
+<!-- User Information start -->
+<div class="d-flex justify-content-center">
+  <div class="form-control ms-5 me-5" style="background-color: white; border: 2px black; padding: 20px; border-radius: 10px;">
+    Nguyen Chanh Nghia
+  </div>
+</div>
+<!-- User Information End -->
+<!-- Describe start -->
+<div class="d-flex justify-content-center mt-2  ">
+  <div class="form-control ms-5 me-5" style="background-color: white; border: 2px black; padding: 10px; border-radius: 10px;">
+    <h3 class=" fw-bold" th:text="'Form : ' + ${formName}"></h3>
+    <h6>Describe about the survey</h6>
+  </div>
+</div>
+
+<!-- Form Domain start -->
+<th:block th:each="skill : ${listInForm}">
+  <a href="#" class="tab-link" th:data-domainid="${skill.domainID}">
+  <div class="d-flex justify-content-center mt-3" id="tableContainer">
+    <div class="form-control ms-5 me-5 d-flex" style="background-color: gray; border: 2px black; padding-top:10px; height: 40px; align-items: center; border-radius: 10px;">
+      <h5 class="me-3 text-white" style="padding-top: 2px;">[[${skill.domainName}]]</h5>
+      <h6 class="me-3 text-white">(7/10)</h6>
+      <h6>70%</h6>
+    </div>
+  </div>
+  </a>
+  <div th:id="table+${skill.domainID}"hidden>
+        <form th:id="form+${skill.domainID}">
+          <table class="table table-bordered" style="font-size: 16px" >
+            <thead class="thead-light">
+            <tr>
+              <th>Skill Name</th>
+              <th>Rate</th>
+            </tr>
+            </thead>
+            <tbody th:id="body+${skill.domainID}">
+            </tbody>
+          </table>
+          <button class="ms-auto me-5 m-2 d-flex" type="submit" style="width:50px; height:35px; border-radius:10px;">
+            Save
+          </button>
+        </form>
+  </div>
+</th:block>
+
+<script>
+  $(document).ready(function() {
+    const url = window.location.href;
+    const segments = url.split('/');
+    const formID = segments[segments.length - 1];
+    const tabLinks = document.querySelectorAll('.tab-link');
+    tabLinks.forEach(link => {
+      link.addEventListener('click', handleClick);
+    });
+    function handleClick(event) {
+      event.preventDefault(); // Prevent the default redirect behavior
+
+      const domainID = this.dataset.domainid;
+      if(document.getElementById("table"+domainID).hidden==true){
+        loadOwnerByMeForms(formID,domainID)
+      }
+    }
+    function loadOwnerByMeForms(formID,domainID) {
+      $.ajax({
+        url: '/participant/form/'+formID+'/getSkill/'+domainID, // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data,domainID);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+    function updateTable(forms,domainID) {
+      var table = document.getElementById("table"+domainID);
+      var body = document.getElementById("body"+domainID);
+      table.hidden = false;
+      forms.forEach(function(form) {
+        var row = document.createElement("tr");
+        row.innerHTML =
+                '<td>' + form.skillName + '</td>' +
+                '<td><input type="number" max="5" min="0" placeholder="Rate here" value="' + form.selfRate + '"></td>';
+        body.appendChild(row);
+      });
+    }
+  });
+
+</script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

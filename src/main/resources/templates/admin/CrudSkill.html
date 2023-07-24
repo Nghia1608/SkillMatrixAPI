@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Skill Matrix</title>
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+    <div class="nav container">
+        <div>
+            <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+                Skill Matrix tool
+            </a>
+        </div>
+        <div class="row">
+            <div class="col ms-0 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+                <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+                    <h6 class="dropdown-header">Notifications</h6>
+                    <div id="notificationList" class="list-group"></div>
+                </div>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container container-fluid">
+<div th:if="${message}" class="alert alert-success text-center bg-gradient">[[${message}]]</div>
+<div th:if="${messageError}" class="alert alert-danger text-center bg-gradient">[[${messageError}]]</div>
+<!--Add skill-->
+
+<div class="h4 m-3">For more skill</div>
+<form th:object="${skill}" th:action="@{/skill/add}" method="post">
+    <input type="hidden" th:field="*{skill_id}" />
+    <label>Skill Name:</label>
+    <input type="text" th:field="*{skillName}" />
+    <label for="domain_id">Skill Domain:</label>
+    <select id="domain_id" th:field="*{domain.domainName}">
+        <th:block th:each="domain : ${skillDomains}">
+            <option th:value="${domain.domainID}">[[${domain.domainName}]]</option>
+        </th:block>
+    </select>
+    <button type="submit">Save Skill</button>
+</form>
+<!--Navigate to skill domain crud page-->
+<button><a th:href="@{/skillDomain/}" class="text-decoration-none">Skill Domain Manage</a></button>
+<!--Skill statistic-->
+<div class="text-center h3 m-3">Skill table</div>
+
+<label for="domain_id_show"> Sort by Skill Domain:</label>
+<select id="domain_id_show" th:field="*{domain.domainName}">
+  <th:block th:each="domain : ${skillDomains}">
+    <option th:value="${domain.domainID}">[[${domain.domainName}]]</option>
+  </th:block>
+</select>
+<table class="table table-light" >
+  <thead>
+  <td>Skill ID</td>
+  <td>Skill Name</td>
+  <td>Domain</td>
+  <td></td>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+    <div id="pagination-container">
+        <button id="prev-button" onclick="loadPreviousPage()">Previous</button>
+        <button id="next-button" onclick="loadNextPage()">Next</button>
+    </div>
+
+<script>
+    var amountItem=0;
+    var maxPage=0;
+  $(document).ready(function() {
+    $('#domain_id_show').change(function(event) {
+      var domainID = $(this).val();
+      loadSkillByDomain(domainID); // Call a function to load the owner forms via AJAX
+
+    });
+    document.getElementById("prev-button").disabled = true;
+    const urlParams = new URLSearchParams(window.location.search);
+    const domainID = urlParams.get('domainID');
+    if (domainID) {
+      loadSkillByDomain(domainID); // Call the function with the retrieved domainID
+    }else {
+        getAmount()
+    }
+
+      function loadSkillByDomain(domainID) {
+      $.ajax({
+        url: '/skill/getByDomain/'+domainID, // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    getAmount()
+      function getAmount() {
+          $.ajax({
+              url: '/skill/getAmountOfSkill', // Update the URL to your endpoint for fetching owner forms
+              type: 'GET',
+              success: function(data) {
+                  // Update the table content with the new data
+                  if(data[0]>10){
+                      showAllSkill(1,10)
+                      amountItem = data[0]
+                      maxPage = data[1]
+                  }else {
+                      showAllSkill(1,data[0])
+                      amountItem = data[0]
+                      maxPage = 1
+                  }
+              },
+              error: function(xhr, status, error) {
+                  // Handle error, if any
+                  console.error(error);
+              }
+          });
+      }
+  });
+  function showAllSkill(page, perPage) {
+      $.ajax({
+          url: '/skill/getAll/?page=' + page + '&perPage=' + perPage,
+          type: 'GET',
+          success: function(data) {
+              // Update the table content with the new data
+              updateTable(data.content);
+          },
+          error: function(xhr, status, error) {
+              // Handle error, if any
+              console.error(error);
+          }
+      });
+  }
+  function updateTable(skills) {
+      var tableBody = $('table.table-light tbody');
+      tableBody.empty(); // Clear existing table rows
+
+      skills.forEach(function(item) {
+          var row = '<tr>' +
+              '<td>' + item.skill_id + '</td>' +
+              '<td>' + item.skillName + '</td>' +
+              '<td>' + item.domain.domainName + '</td>' +
+              '<td><a href="/skill/deleteSkill/' + item.skill_id + '"class="text-center text-decoration-none">Delete</a></td>' +
+
+              '</tr>';
+          tableBody.append(row);
+      });
+  }
+    var currentPage = 1;
+    var itemsPerPage = 10;
+    function loadPreviousPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            loadData();
+        }
+        if(currentPage===1){
+            document.getElementById("prev-button").disabled = true;
+        }else {
+            document.getElementById("prev-button").disabled = false;
+        }
+        if(currentPage===maxPage){
+            document.getElementById("next-button").disabled = true;
+        }else {
+            document.getElementById("next-button").disabled = false;
+        }
+    }
+    function loadNextPage() {
+        currentPage++;
+        loadData();
+        if(currentPage===1){
+            document.getElementById("prev-button").disabled = true;
+        }else {
+            document.getElementById("prev-button").disabled = false;
+        }
+        if(currentPage===maxPage){
+            document.getElementById("next-button").disabled = true;
+        }else {
+            document.getElementById("next-button").disabled = false;
+        }
+    }
+
+    function loadData() {
+        showAllSkill(currentPage, itemsPerPage);
+    }
+</script>
+</div>
+</body>
+</html>

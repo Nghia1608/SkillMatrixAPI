@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matrix</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+</head>
+<body>
+<form th:action="@{/team/save}" method="post" th:object="${team}">
+    <input type="hidden" th:if="${team.teamID}" th:field="*{teamID}">
+    <label>Team name :</label>
+    <input type="text" placeholder="Room name here" th:field="*{teamName}">
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>

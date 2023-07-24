@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Checkbox Dropdown</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+
+    .dropdown-content {
+      display: none;
+      margin-top: 5px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 5px;
+    }
+
+    .dropdown-content label {
+      display: block;
+      margin-bottom: 5px;
+      padding-left: 20px;
+    }
+
+    .checkbox-group {
+      margin-bottom: 10px;
+    }
+
+    .checkbox-group label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 5px;
+    }
+  </style>
+  <script>
+    function toggleDropdown(checkbox) {
+      var dropdown = document.getElementById("dropdownContent-" + checkbox.id);
+      dropdown.style.display = checkbox.checked ? "block" : "none";
+
+      var childCheckboxes = dropdown.getElementsByTagName("input");
+      for (var i = 0; i < childCheckboxes.length; i++) {
+        childCheckboxes[i].checked = checkbox.checked;
+      }
+    }
+  </script>
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<h1>Checkbox Dropdown</h1>
+
+<div class="checkbox-group">
+  <label>
+    <input type="checkbox" id="checkbox1" onchange="toggleDropdown(this)">
+    Checkbox 1
+  </label>
+  <div id="dropdownContent-checkbox1" class="dropdown-content">
+    <label><input type="checkbox"> Level 1 Checkbox 1</label>
+    <label><input type="checkbox"> Level 1 Checkbox 2</label>
+    <label><input type="checkbox"> Level 1 Checkbox 3</label>
+  </div>
+</div>
+
+<div class="checkbox-group">
+  <label>
+    <input type="checkbox" id="checkbox2" onchange="toggleDropdown(this)">
+    Checkbox 2
+  </label>
+  <div id="dropdownContent-checkbox2" class="dropdown-content">
+    <label><input type="checkbox"> Level 2 Checkbox 1</label>
+    <label><input type="checkbox"> Level 2 Checkbox 2</label>
+    <label><input type="checkbox"> Level 2 Checkbox 3</label>
+  </div>
+</div>
+
+<div class="checkbox-group">
+  <label>
+    <input type="checkbox" id="checkbox3" onchange="toggleDropdown(this)">
+    Checkbox 3
+  </label>
+  <div id="dropdownContent-checkbox3" class="dropdown-content">
+    <label><input type="checkbox"> Level 3 Checkbox 1</label>
+    <label><input type="checkbox"> Level 3 Checkbox 2</label>
+    <label><input type="checkbox"> Level 3 Checkbox 3</label>
+  </div>
+</div>
+
+</body>
+</html>

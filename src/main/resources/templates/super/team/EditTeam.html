@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Skill Matrix</title>
+  <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<div class="container container-fluid">
+<div class="container container-fluid">
+  <h1 class="text-center" th:text="'Edit team ' + ${listTeam.teamName}"></h1>
+  <div class="alert alert-success text-center" th:if="${message}">[[${message}]]</div>
+  <table class="table table-light table-bordered">
+    <thead>
+    <tr>
+      <th>User ID</th>
+      <th>User Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    <th:block th:each="user : ${listUserInTeam}">
+      <tr>
+        <td th:text="${user.user_id}"></td>
+        <td th:text="${user.username}"></td>
+      </tr>
+    </th:block>
+    </tbody>
+  </table>
+  <form id="searchForm">
+    <div>The user has already in team will not be display</div>
+    <input type="text" id="searchBox" placeholder="Search...">
+    <input type="submit" value="Search">
+    <div id="searchResults"></div>
+  </form>
+  <div class="h2 text-center fw-bold">List of selected user:</div>
+
+  <form id="submitForm" method="post" th:action="@{/team/addMember}">
+    <input type="text" class="form-control"id="teamID" th:value="${listTeam.teamID}" name="teamID" hidden>
+    <ul id="memberList" class="list-group">
+    </ul>
+    <th:block th:each="item : ${resultList}">
+      <input type="hidden" name="selectedUsers" th:value="${item.user_id}" />
+    </th:block>
+    <input type="submit" value="Add member to team">
+  </form>
+  <script>
+    $(document).ready(function() {
+      var searchForm = $('#searchForm');
+      var searchBox = $('#searchBox');
+      var searchResults = $('#searchResults');
+      var memberList = $('#memberList');
+      var resultList = []; // Array to store the selected search results
+
+      searchForm.on('submit', function(event) {
+        event.preventDefault();
+        var emailUser = searchBox.val();
+        var teamID = document.getElementById("teamID").value;
+        if (emailUser.length >= 1) {
+          $.ajax({
+            type: 'GET',
+            url: '/team/searchMemberNotInThisTeam',
+            data: { emailUser: emailUser,teamID : teamID},
+            success: function(data) {
+              if (data.length > 0) {
+                displayDropdown(data); // Display the dropdown with search results
+              } else {
+                searchResults.html('<div class="result">No results found.</div>');
+              }
+            }
+          });
+        }
+      });
+
+      function displayDropdown(data) {
+        searchResults.html(''); // Clear the search results container
+
+        var dropdownList = $('<ul class="list-group">'); // Create a new <ul> element
+
+        data.forEach(function(result) {
+          var listItem = $('<li class="list-group-item">').text(result.user_id + ' - ' + result.username); // Create a new <li> element with the email as text
+          listItem.addClass('result-item'); // Add a class to the list item for event binding
+          listItem.click(function() {
+            if (!isItemInList(result)) {
+              addItem(result); // Add the selected item to the list group
+              generateHiddenInput(result);
+            }
+          });
+
+          dropdownList.append(listItem); // Append the list item to the dropdown
+        });
+
+        searchResults.append(dropdownList); // Append the dropdown to the search results container
+      }
+
+      function addItem(item) {
+        resultList.push(item); // Add the selected item to the resultList array
+        displayResults(); // Redisplay the updated list group
+      }
+
+      function displayResults() {
+        memberList.html(''); // Clear the member list container
+
+        if (resultList.length > 0) {
+          resultList.forEach(function(result) {
+            var listItem = $('<li class="list-group-item">').text(result.user_id + ' - ' + result.username); // Create a new <li> element with the email as text
+            var deleteButton = $('<button class="btn btn-danger btn-sm float-end delete-btn">Delete</button>'); // Create the delete button
+            deleteButton.click(function() {
+              deleteItem(result);
+            });
+
+            listItem.append(deleteButton); // Append the delete button to the list item
+            memberList.append(listItem); // Append the list item to the member list
+          });
+        } else {
+          memberList.html('<li class="list-group-item">No items in the list</li>');
+        }
+      }
+
+      function deleteItem(item) {
+        var index = resultList.indexOf(item);
+        if (index > -1) {
+          resultList.splice(index, 1); // Remove the item from the resultList array
+          displayResults(); // Redisplay the updated list group
+        }
+      }
+      function generateHiddenInput(item) {
+        var hiddenInput = $('<input type="hidden">')
+                .attr('name', 'selectedUsers')
+                .attr('value', item.user_id);
+
+        $('#submitForm').append(hiddenInput); // Append the hidden input field to the form
+      }
+      function isItemInList(item) {
+        // Check if the item already exists in the resultList array
+        return resultList.some(function(result) {
+          return result.user_id === item.user_id;
+        });
+      }
+
+      // Rest of the code...
+    });
+  </script>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matrix</title>
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+</head>
+<body style="background-color: bisque">
+<div class="text-center mt-4">
+    <h1 class="text-primary">Register new user</h1>
+    <div class="alert alert-danger text-center bg-gradient"></div>
+    <div class="alert alert-success text-center bg-gradient"></div>
+    <form id="formRegister" style="background-color: darkgrey" class="form-control" action="auth/register" method="POST">
+        <div>
+            <label class="h5 fw-bold">Tài khoản :</label>
+            <input id="username" type="text" placeholder="Username"required>
+        </div>
+        <div>
+            <label class="h5 fw-bold m-1">Mật khẩu :</label>
+            <input id="password" type="text" placeholder="Password"required>
+        </div>
+        <div>
+            <label class="h5 fw-bold m-1">Email :</label>
+            <input id="email" type="text" placeholder="Email"required>
+        </div>
+        <div>
+            <label class="h5 fw-bold m-1">Gender:</label>
+            <select id="gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div>
+            <label class="h5 fw-bold m-1">Date of Birth:</label>
+            <input id="birthday" type="text" placeholder="Date"required>
+        </div>
+
+        <div>
+            <label class="h5 fw-bold m-1">Phone :</label>
+            <input id="phone" type="text" placeholder="Phone"required>
+        </div>
+        <button class="btn-secondary m-3" type="submit">Register</button>
+    </form>
+    <script>
+        $(function() {
+            $("#birthday").datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true
+            });
+        });
+    </script>
+    <script>
+        document.getElementById('formRegister').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get form data
+            const formData = {
+                username: document.getElementById("username").value,
+                password: document.getElementById('password').value,
+                email: document.getElementById('email').value,
+                gender: document.getElementById('gender').value,
+                birth: document.getElementById('birthday').value,
+                phone: document.getElementById('phone').value,
+            };
+
+            // Send the data to the controller as JSON
+            fetch('/auth/registerUser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.replace("http://localhost:8080/auth/login");
+                    } else {
+                        alert("Incorrect username or password !!!");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+    <div class="text-center">
+        <label>Already have account</label>
+        <a href="/auth/login">Click to login</a>
+    </div>
+</div>
+</body>
+</html>

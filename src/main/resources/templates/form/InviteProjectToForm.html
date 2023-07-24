@@ -1,0 +1,140 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Skill Matrix</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+
+
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+
+
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+
+        <h4><a href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="text-center h3 m-3">Project table</div>
+<div style="margin: 10px;">
+  <label for="room_id_show"> Sort by Room:</label>
+  <select style="border-radius:10px;" id="room_id_show" >
+      <option value="Default"></option>
+  </select>
+</div>
+<table class="table table-light">
+  <thead>
+  <th>Project ID</th>
+  <th>Project Name</th>
+  <th>Status</th>
+  <th>Add to form</th>
+  </thead>
+  <tbody>
+
+  </tbody>
+</table>
+<script>
+  var url = window.location.href;
+  var regex = /\/(\d+)\//;
+  var match = url.match(regex);
+  var formID = match ? match[1] : null;
+
+  $(document).ready(function() {
+    loadListRoom()
+    $('#room_id_show').change(function(event) {
+      var roomID = $(this).val();
+
+      if(roomID=='Default'){
+        var tableBody = $('table.table-light tbody');
+        tableBody.empty(); // Clear existing table rows
+      }else {
+        loadSkillByDomain(roomID); // Call a function to load the owner forms via AJAX
+      }
+    });
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomID = urlParams.get('roomID');
+    if (roomID) {
+      loadSkillByDomain(roomID); // Call the function with the retrieved domainID
+    }
+    function loadSkillByDomain(roomID) {
+      $.ajax({
+        url: '/project/getProjectByRoom/'+roomID, // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+    function loadListRoom(){
+      $.ajax({
+        url: '/participant/getListRoom', // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          data.forEach(function(item) {
+            var option = $('<option>').attr('value', item.roomID).text(item.roomName);
+            $('#room_id_show').append(option);
+          });
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+    function updateTable(projects) {
+      var tableBody = $('table.table-light tbody');
+      tableBody.empty(); // Clear existing table rows
+
+      projects.forEach(function(project) {
+        var status = project.status ? 'Enable' : 'Disable';
+        var row = '<tr>' +
+                '<td>' + project.projectID + '</td>' +
+                '<td>' + project.projectName + '</td>' +
+                '<td>' + status + '</td>' + // Use the determined status string
+                '<td><a href="/participant/form/'+formID +'/addSelectedProject/'+project.projectID+'">Add this project</a></td>'+
+                '</tr>';
+        tableBody.append(row);
+      });
+    }
+
+  });
+
+</script>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

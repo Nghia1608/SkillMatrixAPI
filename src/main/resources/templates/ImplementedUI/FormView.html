@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body style="background-color:lightgrey">
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- Navbar End -->
+<!-- Back button start -->
+<div>
+  <h5>
+    <a href="" class="text-decoration-none d-flex mt-2 ms-5" style="color: grey">
+      <ion-icon class="mt-1" name="arrow-back-outline"></ion-icon>
+      <h5 class="ms-2">Back</h5>
+    </a>
+  </h5>
+</div>
+<!-- Back button end -->
+<!-- User rate view start-->
+<div class="d-flex justify-content-center" style="background-color: darkgrey; padding-bottom: 100%;">
+  <div id="UserRateView" style="background-color: lightgrey; border-color: transparent; margin-top: 2%; border-width: 2px; border-style: solid; padding: 20px; border-radius: 10px;">
+    <table class="table table-bordered table-striped">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>User name</th>
+        <th>Gender</th>
+        <th>Birthday</th>
+        <th>Email</th>
+        <th>Phone number</th>
+        <th>Progress</th>
+        <th></th>
+      </tr>
+      </thead>
+      <!-- Temparature data -->
+      <tbody>
+      </tbody>
+      <!-- Temparature data -->
+    </table>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+    var currentURL = window.location.href;
+    var desiredValue = currentURL.match(/\/(\d+)$/)[1];
+    loadAssignByMeForms(); // Call a function to load the owner forms via AJAX
+    function loadAssignByMeForms() {
+      $.ajax({
+        url: '/manager/userInForm/'+desiredValue, // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          // Update the table content with the new data
+          updateTable(data);
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+
+    function updateTable(forms) {
+      var tableBody = $('table.table-bordered.table-striped tbody');
+      tableBody.empty(); // Clear existing table rows
+
+      forms.forEach(function(item) {
+        var form = item[0];
+        var progress = item[1];
+        var row = '<tr>' +
+                '<td>' + form.user_id + '</td>' +
+                '<td>' + form.username + '</td>' +
+                '<td>' + form.gender + '</td>' +
+                '<td>' + form.birthday + '</td>' +
+                '<td>' + form.email + '</td>' +
+                '<td>' + form.phoneNumber +  '</td>' +
+                '<td>'+progress+'  % </td>' +
+                '<td><ion-icon name="ellipsis-horizontal-outline"></ion-icon></td>'+
+                '</tr>';
+        tableBody.append(row);
+      });
+    }
+  });
+</script>
+<!-- User rate view end -->
+<style>
+  #UserRateView{
+    position:static;
+    width: 80%;
+    height: 70%;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+</style>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+</html>

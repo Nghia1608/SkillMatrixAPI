@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Matrix</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+    <div class="nav container">
+        <div>
+            <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+                Skill Matrix tool
+            </a>
+        </div>
+        <div class="row">
+            <div class="col ms-0 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+                <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+                    <h6 class="dropdown-header">Notifications</h6>
+                    <div id="notificationList" class="list-group"></div>
+                </div>
+            </div>
+            <div class="col ms-4 mt-3">
+                <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+            </div>
+        </div>
+    </div>
+</nav>
+<div class="container container-fluid">
+<h1 class="text-center">CRUD Room</h1>
+<div class="alert alert-success text-center" th:if="${message}">[[${message}]]</div>
+    <table class="table table-light table-bordered" th:object="${listRoom}">
+        <thead>
+            <tr>
+                <td>Room ID</td>
+                <td>Room Name</td>
+                <td>Contained by</td>
+                <td>Status</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </thead>
+        <tbody>
+            <th:block th:each="room : ${listRoom}">
+                <tr>
+                    <td th:text="${room.roomID}"></td>
+                    <td th:text="${room.roomName}"></td>
+                    <td th:if="${room.containRoom}" th:text="${room.containRoom.roomName}"></td>
+                    <td th:if="${room.containRoom} == null" th:text="None"></td>
+                    <td th:if="${room.active} == true">Enable</td>
+                    <td th:if="${room.active} == false">Disable</td>
+                    <td><a class="h6 text-decoration-none" th:href="@{'/room/edit/'+ ${room.getRoomID()}}">Edit</a></td>
+                    <td th:if="${room.active} == true"><a class="h6 text-decoration-none" th:href="@{'/room/disable/'+ ${room.getRoomID()}}">Disable</a></td>
+                    <td th:if="${room.active} == false"><a class="h6 text-decoration-none" th:href="@{'/room/enable/'+ ${room.getRoomID()}}">Enable</a></td>
+                    <td><a class="h6 text-decoration-none" th:href="@{'/room/naviSave/'+ ${room.getRoomID()}}">Create small room</a></td>
+                    <td><a class="h6 text-decoration-none" th:href="@{'/project/page/'+ ${room.getRoomID()}}">Room  project</a></td>
+                </tr>
+            </th:block>
+        </tbody>
+    </table>
+    <button class="btn btn-lg btn-primary"><a class="h6 text-decoration-none text-white" th:href="@{/room/bigroom}">Create a big room</a></button>
+</div>
+</body>
+</html>

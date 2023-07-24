@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Form filling</title>
+  <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+<body style="background-color:lightgrey">
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg navbar-dark" style="background-color:darkgrey">
+  <div class="nav container">
+    <div>
+      <a href="#" class="text-decoration-none fs-5 fw-bolder text-white">
+        Skill Matrix tool
+      </a>
+    </div>
+    <div class="row">
+      <div class="col ms-0 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="globe-outline"></ion-icon></a></h4>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a id="notificationLink" href="#" style="color: inherit;"><ion-icon name="notifications-outline"></ion-icon></a></h4>
+        <div id="notificationDropdown" class="position-absolute bg-light dropdown-menu" style="min-width: 250px;">
+          <h6 class="dropdown-header">Notifications</h6>
+          <div id="notificationList" class="list-group"></div>
+        </div>
+      </div>
+      <div class="col ms-4 mt-3">
+        <h4><a href="#" style="color: inherit;"><ion-icon name="chevron-down-outline"></ion-icon></ion-icon></a></h4>
+      </div>
+    </div>
+  </div>
+</nav>
+<form id="formSelectSkillDomain" action="/manager/updateFormBySelectedSkillDomain" method="post">
+<div class="h1 text-center mt-4">Addition Skill Domain to your Form</div>
+<div class="container container-fluid">
+  <div class="h3 text-center">Public Skill Domain</div>
+  <div class="mt-1">
+    <label class="fw-bold h5">Public Skill</label>
+    <input id="domainPublicSearch" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+    <input disabled id="domainPublic" style="border-radius:10px;" placeholder="Selected rooms" class="form-control" type="text">
+    <ul id="domainPublicSuggestions"></ul>
+  </div>
+    <div class="h3 text-center">Skill Domain By Your Team</div>
+    <div class="mt-1">
+      <label class="fw-bold h5">Private Skill</label>
+      <input id="domainPrivateSearch" style="border-radius:10px; width: 30%; padding-left:10px; border:none; margin-left:10px;" placeholder="Search here!">
+      <input disabled id="domainPrivate" style="border-radius:10px;" placeholder="Selected rooms" class="form-control" type="text">
+      <ul id="domainPrivateSuggestions"></ul>
+    </div>
+  <input disabled hidden id="domainIDToSubmit" style="border-radius:10px;"class="form-control" type="text">
+
+    <button id="btnSubmit" type="submit" class="m-3 btn btn-primary btn-lg"> Add domain</button>
+</div>
+</form>
+
+<div class="container container-fluid">
+  <div class="h3 text-center">Skill Domain Already in your Form</div>
+  <table class="table table-light">
+    <thead>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+</body>
+<script >
+
+
+</script>
+<script>
+  let listDomainPublic=""
+  let listDomainPrivate=""
+  let listDomainIDToSubmit=""
+  $(document).ready(function (){
+    var url = window.location.href;
+    const formID = url.match(/\/(\d+)\/edit$/)[1];
+    loadListDomainInForm()
+    function loadListDomainInForm(){
+      $.ajax({
+        url: '/manager/form/'+formID+'/getDataEdit', // Update the URL to your endpoint for fetching owner forms
+        type: 'GET',
+        success: function(data) {
+          updateTable(data)
+          setDataForListPublic(data)
+          setDataForListPrivate(data)
+        },
+        error: function(xhr, status, error) {
+          // Handle error, if any
+          console.error(error);
+        }
+      });
+    }
+    function setDataForListPublic(data){
+      listDomainPublic = data[2].map(function(domainPublic) {
+        return domainPublic.domainName +'ID:'+ domainPublic.domainID;
+    }
+    )}
+    function setDataForListPrivate(data){
+      listDomainPrivate = data[3].map(function(domainPublic) {
+        return domainPublic.domainName +'ID:'+ domainPublic.domainID;
+      }
+      )}
+
+    function updateTable(teams) {
+      var tableBody = $('table.table-light tbody');
+      tableBody.empty(); // Clear existing table rows
+
+      teams[4].forEach(function(domain) {
+        var row = '<th>' + domain.domainName + '</th>';
+        tableBody.append(row);
+      });
+    }
+  })
+
+
+  function filterSuggestions(input, list) {
+    // const filteredList = list.filter(item => item.toLowerCase().includes(input.toLowerCase()));
+    const filteredList = list.filter(item => item && item.toLowerCase().includes(input.toLowerCase()));
+
+    return filteredList;
+  }
+
+  // Function to display suggestions in the corresponding ul element
+  function showSuggestions(inputId, suggestionsId, list) {
+    const input = document.getElementById(inputId);
+    const suggestions = document.getElementById(suggestionsId);
+    const inputValue = input.value;
+    const filteredList = filterSuggestions(inputValue, list);
+
+    suggestions.innerHTML = ''; // Clear previous suggestions
+
+    if (inputValue !== '') {
+      filteredList.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        suggestions.appendChild(li);
+      });
+    }
+  }
+
+  // Event listeners for input fields
+  document.getElementById('domainPublicSearch').addEventListener('input', () => {
+    showSuggestions('domainPublicSearch', 'domainPublicSuggestions', listDomainPublic);
+  });
+  document.getElementById('domainPrivateSearch').addEventListener('input', () => {
+    showSuggestions('domainPrivateSearch', 'domainPrivateSuggestions', listDomainPrivate);
+  });
+  function appendToInput(inputId, suggestion) {
+    const input = document.getElementById(inputId);
+    input.value += (input.value !== '' ? ', ' : '') + suggestion;
+  }
+
+  // Event listeners for suggestion selection
+  document.getElementById('domainPublicSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    const ID = selectedSuggestion.split("ID:")[1];
+    appendToInput('domainPublic', selectedSuggestion);
+    appendToInput('domainIDToSubmit', ID);
+  });
+  document.getElementById('domainPrivateSuggestions').addEventListener('click', (event) => {
+    const selectedSuggestion = event.target.textContent;
+    const ID = selectedSuggestion.split("ID:")[1];
+    appendToInput('domainPrivate', selectedSuggestion);
+    appendToInput('domainIDToSubmit', ID);
+  });
+</script>
+<script>
+  document.getElementById('formSelectSkillDomain').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent form submission
+    var url = window.location.href;
+    const formID = url.match(/\/(\d+)\/edit$/)[1];
+    const formData = {
+      listDomainID: document.getElementById('domainIDToSubmit').value.replaceAll(" ",""),
+      formID : formID
+    };
+    console.log(formData)
+    fetch('/manager/updateFormBySelectedSkillDomain', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+      .then(response => {
+        // Check if the response status is 200 OK
+        if (response) {
+          window.location.replace("http://localhost:8080/participant/home");
+        } else {
+          alert("Error !!!");
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+  });
+</script>
+</html>
