@@ -3,8 +3,12 @@ package com.phuquy.service;
 import com.phuquy.entity.*;
 import com.phuquy.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -12,7 +16,7 @@ import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService{
 
     private final UserRepository userRepo;
     private final CookieService cookieService;
@@ -21,13 +25,17 @@ public class AuthService {
     private final UserRoleService userRoleService;
     private final TeamService teamService;
     private final TeamMemberService teamMemberService;
-    public boolean authenticate(String username ,String password, HttpServletResponse response){
+    private final EncryptService encryptService;
+    public boolean authenticate(String username ,String password, HttpServletResponse response) throws Exception {
         if(username.trim().equals("") || password.equals("")){
             return false;
         }
-        if(userRepo.findUserByUsernameAndPassword(username.trim(), password.trim()) != null){
-            cookieService.generateTokenWhileLogin(username.trim(),response);
-            return true;
+        User user = userRepo.findUserByUsername(username);
+        if(user!=null){
+            if(password.equals(encryptService.decrypt(user.getPassword()))){
+                    cookieService.generateTokenWhileLogin(username,response);
+                    return true;
+            }
         }
         return false;
     }
@@ -35,6 +43,7 @@ public class AuthService {
         try {
             String username = data.get("username");
             String password = data.get("password");
+            String passEncrypt = encryptService.encrypt(password);
             String email = data.get("email");
             String gender = data.get("gender");
             String birth = data.get("birth");
@@ -58,7 +67,7 @@ public class AuthService {
             //Save to user table
             User user = new User();
             user.setUsername(username);
-            user.setPassword(password);
+            user.setPassword(passEncrypt);
             user.setEmail(email);
             user.setGender(gender);
             user.setBirthday(birth);
@@ -81,10 +90,12 @@ public class AuthService {
             return true;
         } catch (NoSuchElementException e) {
             return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
     public boolean logout(HttpServletResponse response){
-        String[] cookieNames = {"access_token", "refresh_token","username"};
+        String[] cookieNames = {"access_token", "refresh_token"};
         for (String cookieName : cookieNames) {
             Cookie cookie = new Cookie(cookieName, null);
             cookie.setMaxAge(0);
@@ -94,4 +105,6 @@ public class AuthService {
         }
         return true;
     }
+
+
 }

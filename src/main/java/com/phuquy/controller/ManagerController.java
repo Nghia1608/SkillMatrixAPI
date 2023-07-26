@@ -33,8 +33,8 @@ public class ManagerController {
 
 
     @GetMapping("/getSkillDomainBy/form/{formID}")
-    public ResponseEntity<Object> getSkillDomainByForm(@PathVariable int formID,HttpServletRequest request){
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<Object> getSkillDomainByForm(@PathVariable int formID,HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         if(!formParticipantService.checkParticipantInForm(formID, (int) user.getUser_id())){
             return ResponseEntity.ok(new ArrayList<>());
@@ -45,8 +45,8 @@ public class ManagerController {
         }
     }
     @GetMapping("/userAndProgressInForm/{formID}")
-    public ResponseEntity<Object> userAndProgressInForm(@PathVariable int formID, HttpServletRequest request){
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<Object> userAndProgressInForm(@PathVariable int formID, HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         if(!formParticipantService.checkParticipantInForm(formID, (int) user.getUser_id()) && !formService.checkOwnerInForm(formID, (int) user.getUser_id())){
             return ResponseEntity.ok(new ArrayList<>());
@@ -62,7 +62,7 @@ public class ManagerController {
         }
     }
     @GetMapping("/getAllUserRateInForm/{formID}")
-    public ResponseEntity<Object> getAllUserRateInForm(@PathVariable int formID,HttpServletRequest request){
+    public ResponseEntity<Object> getAllUserRateInForm(@PathVariable int formID,HttpServletRequest request) throws Exception {
         Object dataUserRate = userRateService.getAllDataUserRateByForm(formID,request);
         return ResponseEntity.ok(dataUserRate);
     }
@@ -93,6 +93,8 @@ public class ManagerController {
         } catch (NoSuchElementException e) {
             String message = "No form/domain with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -110,6 +112,8 @@ public class ManagerController {
         } catch (NoSuchElementException e) {
             String message = "No form with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

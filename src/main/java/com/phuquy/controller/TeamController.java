@@ -73,7 +73,7 @@ public class TeamController {
     }
     @GetMapping("/searchMemberNotInThisTeam/{teamID}")
     public ResponseEntity<List<User>> searchMemberNotInThisTeam(@RequestParam("emailUser") String emailUser,@PathVariable int teamID) {
-        List<User> searchResults = teamMemberService.findUserStartWithEmail(emailUser,teamID);
+        List<User> searchResults = teamMemberService.findUserStartWithEmail(emailUser.trim(),teamID);
         return ResponseEntity.ok(searchResults);
     }
 
