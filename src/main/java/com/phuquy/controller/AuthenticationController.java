@@ -18,7 +18,7 @@ public class AuthenticationController {
     private final AuthService service;
 
     @PostMapping("/authenticate")
-    public ResponseEntity<String> authenticate(@RequestParam String username,@RequestParam String password, HttpServletResponse response){
+    public ResponseEntity<String> authenticate(@RequestParam String username,@RequestParam String password, HttpServletResponse response) throws Exception {
         if(service.authenticate(username,password,response)){
             String message = "Success";
             return ResponseEntity.status(HttpStatus.OK).body(message);

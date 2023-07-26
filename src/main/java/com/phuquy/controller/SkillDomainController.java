@@ -18,7 +18,7 @@ public class SkillDomainController {
     private final SkillDomainService skillDomainService;
 
     @PostMapping("/addDomain")
-    public ResponseEntity<?> addDomain(@RequestParam String domainName,HttpServletRequest request){
+    public ResponseEntity<?> addDomain(@RequestParam String domainName,HttpServletRequest request) throws Exception {
         if(domainName.matches("[a-zA-Z ]+") && domainName.length()<100){
             skillDomainService.addDomain(domainName,request);
             String message = "Success";
@@ -40,7 +40,7 @@ public class SkillDomainController {
                 String message = "You dont allow to access this domain";
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
             }
-        } catch (NoSuchElementException e) {
+        } catch (Exception e) {
             String message = "No team with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }

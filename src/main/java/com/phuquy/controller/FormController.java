@@ -7,6 +7,7 @@ import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -23,12 +24,11 @@ public class FormController {
     private final SkillService skillService;
     private final ProjectService projectService;
     private final RoomService roomService;
-    private final  JWTService jwtService;
-    private final  NotificationService notificationService;
+    private final JWTService jwtService;
     private final CookieService cookieService;
     private final TeamService teamService;
     @PostMapping("/formCreate")
-    public ResponseEntity<String> formCreate(@RequestBody Map<String,String> data, HttpServletRequest request) {
+    public ResponseEntity<String> formCreate(@RequestBody Map<String,String> data, HttpServletRequest request) throws Exception {
             if (formService.createForm(data,request)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
@@ -52,12 +52,14 @@ public class FormController {
         } catch (NoSuchElementException e) {
             String message = "No form with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     @GetMapping("/getSkillDomainAndProgressInForm/{formID}")
-    public ResponseEntity<Object[]> getSkillDomainAndProgressInForm(@PathVariable int formID,HttpServletRequest request){
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<Object[]> getSkillDomainAndProgressInForm(@PathVariable int formID,HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         if(!formParticipantService.checkParticipantInForm(formID, (int) user.getUser_id()) && !formService.checkOwnerInForm(formID, (int) user.getUser_id())){
             return ResponseEntity.ok(new ArrayList[]{new ArrayList<>()});
@@ -77,8 +79,8 @@ public class FormController {
     }
 
     @GetMapping("/form/{formID}/getSelfRate/{domainID}")
-    public ResponseEntity<Object[]> getSelfRateByFormAndDomain(HttpServletRequest request,@PathVariable("formID") int formID, @PathVariable("domainID") int domainID) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<Object[]> getSelfRateByFormAndDomain(HttpServletRequest request,@PathVariable("formID") int formID, @PathVariable("domainID") int domainID) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         //Get userID from username
         User user = userService.findUserByUsername(username);
         List<Skill> skillList = skillService.getListByDomainID(domainID);
@@ -100,8 +102,8 @@ public class FormController {
     }
 
     @GetMapping("/getInvitedMemberInForm/{formID}")
-    public ResponseEntity<Object> getInvitedMemberInForm(@PathVariable int formID,HttpServletRequest request){
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<Object> getInvitedMemberInForm(@PathVariable int formID,HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         if(!formService.checkOwnerInForm(formID, (int) user.getUser_id())
                 && !formService.checkManagerInForm(formID, (int) user.getUser_id())){
@@ -118,22 +120,23 @@ public class FormController {
         return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/getFormOwner")
-    public ResponseEntity<List<Form>> getFormOwner(HttpServletRequest request) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<List<Form>> getFormOwner(HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         List<Form> searchResults = formService.getListFormOwner((int) user.getUser_id());
         return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/getFormParticipant")
-    public ResponseEntity<List<Form>> getFormParticipant(HttpServletRequest request) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
-        User user = userService.findUserByUsername(username);
-        List<Form> searchResults = formService.getFormHasParticipant((int) user.getUser_id());
-        return ResponseEntity.ok(searchResults);
+    public ResponseEntity<Object> getFormParticipant(HttpServletRequest request) throws Exception {
+            String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
+            User user = userService.findUserByUsername(username);
+            List<Form> searchResults = formService.getFormHasParticipant((int) user.getUser_id());
+
+            return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/getFormManager")
-    public ResponseEntity<List<Form>> getFormManager(HttpServletRequest request) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public ResponseEntity<List<Form>> getFormManager(HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         List<Form> searchResults = formService.getListFormManager((int) user.getUser_id());
         return ResponseEntity.ok(searchResults);
@@ -154,6 +157,8 @@ public class FormController {
         } catch (NoSuchElementException e) {
             String message = "No Form with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
     //Add a team (contains all member) to a form.

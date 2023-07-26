@@ -63,8 +63,8 @@ public class FormParticipantService {
         Matcher matcher = regex.matcher(x);
         return matcher.matches();
     }
-    public boolean addInvitedMemberToForm(String listUser,int formID, HttpServletRequest request) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public boolean addInvitedMemberToForm(String listUser,int formID, HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         if(validateInput(listUser)){
             if(!formService.checkOwnerInForm(formID, (int) user.getUser_id())

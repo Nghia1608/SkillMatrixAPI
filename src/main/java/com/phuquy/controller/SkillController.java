@@ -81,6 +81,8 @@ public class SkillController {
         } catch (NoSuchElementException e) {
             String message = "No Skill with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
