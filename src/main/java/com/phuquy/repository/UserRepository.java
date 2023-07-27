@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository
@@ -18,6 +19,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     User findUserByUsername(String username);
     User findUserByEmail(String email);
 
+    @Query("SELECT u FROM User u where u.username = :username ")
+    Optional<User> findUserByUsernameForJWT(String username);
     //Find use start with email and not in this form. ( use in invite member to form)
     @Query("SELECT u FROM User u " +
             "WHERE u.email LIKE CONCAT(:email, '%') " +

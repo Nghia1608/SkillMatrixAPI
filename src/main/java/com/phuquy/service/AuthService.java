@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthService{
 
     private final UserRepository userRepo;
     private final CookieService cookieService;
@@ -21,13 +21,17 @@ public class AuthService {
     private final UserRoleService userRoleService;
     private final TeamService teamService;
     private final TeamMemberService teamMemberService;
-    public boolean authenticate(String username ,String password, HttpServletResponse response){
+    private final EncryptService encryptService;
+    public boolean authenticate(String username ,String password, HttpServletResponse response) throws Exception {
         if(username.trim().equals("") || password.equals("")){
             return false;
         }
-        if(userRepo.findUserByUsernameAndPassword(username.trim(), password.trim()) != null){
-            cookieService.generateTokenWhileLogin(username.trim(),response);
-            return true;
+        User user = userRepo.findUserByUsername(username);
+        if(user!=null){
+            if(password.equals(encryptService.decrypt(user.getPassword()))){
+                    cookieService.generateTokenWhileLogin(username,response);
+                    return true;
+            }
         }
         return false;
     }
@@ -39,8 +43,21 @@ public class AuthService {
             String gender = data.get("gender");
             String birth = data.get("birth");
             String phone = data.get("phone");
-            int roleID = Integer.parseInt(data.get("roleID"));
-            int teamID = Integer.parseInt(data.get("teamID"));
+            String roleID = data.get("roleID");
+            String teamID = data.get("teamID");
+            //Check data map
+            if (username == null || username.isEmpty() ||
+                    password == null || password.isEmpty() ||
+                    email == null || email.isEmpty() ||
+                    gender == null || gender.isEmpty() ||
+                    birth == null || birth.isEmpty() ||
+                    phone == null || phone.isEmpty() ||
+                    roleID == null || roleID.isEmpty() ||
+                    teamID == null || teamID.isEmpty()) {
+                return false;
+            }
+            String passEncrypt = encryptService.encrypt(password);
+
             //Check data
             if(userService.CheckUsernameExist(username)||userService.CheckEmailExist(email)){
                 return false;
@@ -55,10 +72,14 @@ public class AuthService {
             if(!email.matches(emailPattern)){
                 return false;
             }
+            //Search team and Role to check Exception before save user
+            Role role = roleService.findById(Integer.parseInt(roleID));
+            Team team = teamService.findById(Integer.parseInt(teamID));
+
             //Save to user table
             User user = new User();
             user.setUsername(username);
-            user.setPassword(password);
+            user.setPassword(passEncrypt);
             user.setEmail(email);
             user.setGender(gender);
             user.setBirthday(birth);
@@ -68,23 +89,23 @@ public class AuthService {
             //Save to user_role table
             UserRole userRole = new UserRole();
             User userHasSave = userService.findUserByUsername(username);
-            Role role = roleService.findById(roleID);
             userRole.setUser(userHasSave);
             userRole.setRole(role);
             userRoleService.save(userRole);
             //Save to teamMember
             TeamMember teamMember = new TeamMember();
-            Team team = teamService.findById(teamID);
             teamMember.setTeam(team);
             teamMember.setUser(userHasSave);
             teamMemberService.save(teamMember);
             return true;
         } catch (NoSuchElementException e) {
             return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
     public boolean logout(HttpServletResponse response){
-        String[] cookieNames = {"access_token", "refresh_token","username"};
+        String[] cookieNames = {"access_token", "refresh_token"};
         for (String cookieName : cookieNames) {
             Cookie cookie = new Cookie(cookieName, null);
             cookie.setMaxAge(0);
@@ -94,4 +115,5 @@ public class AuthService {
         }
         return true;
     }
+
 }

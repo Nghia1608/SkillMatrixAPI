@@ -28,10 +28,10 @@ public interface FormParticipantRepository extends JpaRepository<FormParticipant
             "and fp.form.formID = :formID")
     List<User> findUserHasParticipant(@Param("formID") int formID);
     @Query("SELECT u " +
-            "FROM User u,FormParticipant fp,TeamMember tm,Team t " +
-            "where u.user_id=fp.user.user_id and u.user_id = tm.user.user_id and tm.team.teamID = t.teamID " +
-            "and fp.form.formID = :formID")
-    List<User> findUserHasParticipantInManagerPage(@Param("formID") int formID);
+            "FROM User u,FormParticipant fp " +
+            "where u.user_id=fp.user.user_id " +
+            "and fp.form.formID = :formID ")
+    List<User> findUserHasParticipantInForm(@Param("formID") int formID);
     @Query("SELECT d FROM SkillDomain d " +
             "WHERE d.status='Public' and  d.domainID " +
             "NOT IN (SELECT fd.domain.domainID FROM FormDomain fd " +

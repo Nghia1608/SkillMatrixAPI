@@ -14,7 +14,7 @@ public class Room {
     @Column(name = "room_id")
     private int roomID;
     @ManyToOne
-    @JoinColumn(name = "containRoom")
+    @JoinColumn(name = "contain_Room")
     private Room containRoom;
     @Column(name = "room_name")
     private String roomName;

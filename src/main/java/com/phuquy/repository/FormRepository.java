@@ -1,11 +1,6 @@
 package com.phuquy.repository;
 
-import com.phuquy.entity.Form;
-
-import com.phuquy.entity.FormParticipant;
-
-import com.phuquy.entity.SkillDomain;
-import com.phuquy.entity.User;
+import com.phuquy.entity.*;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -39,6 +34,6 @@ public interface FormRepository extends JpaRepository<Form, Long> {
             "and ur.role.roleID = r.roleID and r.roleName ='Manager' and u.user_id = :userID")
     List<Form> showListFormManager(@Param("userID") int userID);
 
-    @Query("SELECT fd from FormDomain fd,Form f where fd.form.formID = f.formID and fd.domain.domainID = :domainID")
-    Form findByDomainID(int domainID);
+    @Query("SELECT fd from FormDomain fd where fd.domain.domainID = :domainID and fd.form.formID = :formID ")
+    FormDomain findByDomainID(@Param("formID") int formID , @Param("domainID") int domainID);
 }

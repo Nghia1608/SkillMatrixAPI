@@ -29,6 +29,12 @@ public class TeamService {
         Matcher matcher = regex.matcher(x);
         return matcher.matches();
     }
+    public boolean CheckTeamID(String teamID){
+        if(!teamID.matches("\\d+") || teamID.length()>9){
+            return false;
+        }
+        return true;
+    }
     public Team findTeamByUserID(int userID){
         return teamRepository.findTeamByUserID(userID);
     }

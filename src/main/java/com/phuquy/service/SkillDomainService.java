@@ -86,8 +86,8 @@ public class SkillDomainService {
         return true;
     }
 
-    public void addDomain(@RequestParam String domainName, HttpServletRequest request) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public void addDomain(@RequestParam String domainName, HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         Team team = teamService.findTeamByUserID((int) user.getUser_id());
         SkillDomain skillDomain = new SkillDomain();
@@ -102,8 +102,8 @@ public class SkillDomainService {
         }
         save(skillDomain);
     }
-    public boolean deleteDomain(@PathVariable int domainID, HttpServletRequest request) {
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public boolean deleteDomain(@PathVariable int domainID, HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         SkillDomain skillDomain = findById(domainID);
         if(checkUserCanAccessDomain((int) user.getUser_id(),domainID)){
@@ -118,5 +118,11 @@ public class SkillDomainService {
             return true;
         }
         return false;
+    }
+    public boolean CheckDomainID(String domainID){
+        if(!domainID.matches("\\d+") || domainID.length()>9){
+            return false;
+        }
+        return true;
     }
 }

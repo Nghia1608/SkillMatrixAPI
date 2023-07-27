@@ -21,13 +21,17 @@ public class ProjectController {
     private final TeamProjectService teamProjectService;
 
     @PostMapping("/addNewProject")
-    public ResponseEntity<?> addNewProject(@RequestParam String projectName,@RequestParam int roomID){
+    public ResponseEntity<?> addNewProject(@RequestParam String projectName,@RequestParam String roomID){
         if(!projectService.checkDataInput(projectName)){
-            String message = "Only allow a-z and Space, Length must < 50";
+            String message = "Project name only allow a-z and Space, Length must < 50";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        if(!projectService.CheckProjectID(roomID)){
+            String message = "RoomId only number and length < 10";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
         try{
-            Room room = roomService.findByID(roomID);
+            Room room = roomService.findByID(Integer.parseInt(roomID));
             if(room!=null){
                 Project project = new Project();
                 project.setProjectName(projectName);
@@ -43,14 +47,22 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
     @PutMapping("/editProject/{projectID}")
-    public ResponseEntity<String> editProject(@PathVariable("projectID") int projectID, @RequestParam String projectName, @RequestParam int roomID){
+    public ResponseEntity<String> editProject(@PathVariable("projectID") String projectID, @RequestParam String projectName, @RequestParam String roomID){
         if(!projectService.checkDataInput(projectName)){
             String message = "Only allow a-z and Space, Length must < 50";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
+        if(!projectService.CheckProjectID(projectID)){
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        if(!projectService.CheckProjectID(roomID)){
+            String message = "RoomId only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try{
-            Room room = roomService.findByID(roomID);
-            Project project = projectService.findByProjectID(projectID);
+            Room room = roomService.findByID(Integer.parseInt(roomID));
+            Project project = projectService.findByProjectID(Long.parseLong(projectID));
             if(room!=null && project!=null){
                 project.setProjectName(projectName);
                 project.setRoom(room);
@@ -64,9 +76,13 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
     @PostMapping("/disable/{projectID}")
-    public ResponseEntity<String> disable(@PathVariable("projectID") int projectID){
+    public ResponseEntity<String> disable(@PathVariable("projectID") String projectID){
+        if(!projectService.CheckProjectID(projectID)){
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try{
-            Project project = projectService.findByProjectID(projectID);
+            Project project = projectService.findByProjectID(Long.parseLong(projectID));
             if(project!=null){
                 project.setStatus(false);
                 projectService.save(project);
@@ -80,9 +96,13 @@ public class ProjectController {
     }
 
     @PostMapping("/enable/{projectID}")
-    public ResponseEntity<String> enable(@PathVariable("projectID") int projectID){
+    public ResponseEntity<String> enable(@PathVariable("projectID") String projectID){
+        if(!projectService.CheckProjectID(projectID)){
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try{
-            Project project = projectService.findByProjectID(projectID);
+            Project project = projectService.findByProjectID(Long.parseLong(projectID));
             if(project!=null){
                 project.setStatus(true);
                 projectService.save(project);
@@ -95,20 +115,36 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
     @GetMapping("/searchProjectHasNotRoom")
-    public ResponseEntity<List<Project>> searchProjectHasNotRoom(@RequestParam("projectName") String projectName) {
+    public ResponseEntity<Object> searchProjectHasNotRoom(@RequestParam("projectName") String projectName) {
         List<Project> searchResults = projectService.getListProjectHasNotRoom(projectName);
+        if(searchResults==null||searchResults.isEmpty()){
+            String message = "No project";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/searchTeamNotInProject")
-    public ResponseEntity<List<Team>> getTeamNotInProject(@RequestParam("query") String query,@RequestParam int projectID) {
-        List<Team> searchResults = teamProjectService.findTeamNotInProject(query,projectID);
+    public ResponseEntity<Object> getTeamNotInProject(@RequestParam("query") String query,@RequestParam String projectID) {
+        if (!projectService.CheckProjectID(projectID)) {
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        List<Team> searchResults = teamProjectService.findTeamNotInProject(query, Integer.parseInt(projectID));
+        if (searchResults == null || searchResults.isEmpty()) {
+            String message = "No project";
+            return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(searchResults);
     }
     @PostMapping("/addTeamToProject/{projectID}")
-    public ResponseEntity<?> addTeamToProject(@PathVariable int projectID,@RequestParam String selectedTeams){
+    public ResponseEntity<?> addTeamToProject(@PathVariable String projectID,@RequestParam String selectedTeams){
+        if (!projectService.CheckProjectID(projectID)) {
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            projectService.findByProjectID(projectID);
-            if (projectService.addTeamToProject(projectID,selectedTeams)) {
+            projectService.findByProjectID(Long.parseLong(projectID));
+            if (projectService.addTeamToProject(Integer.parseInt(projectID),selectedTeams)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             } else {
@@ -121,10 +157,14 @@ public class ProjectController {
         }
     }
     @DeleteMapping("/deleteTeamInProject/{projectID}")
-    public ResponseEntity<?> deleteTeamInProject(@PathVariable int projectID,@RequestParam String selectedTeams){
+    public ResponseEntity<?> deleteTeamInProject(@PathVariable String projectID,@RequestParam String selectedTeams){
+        if (!projectService.CheckProjectID(projectID)) {
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            projectService.findByProjectID(projectID);
-            if (projectService.deleteTeamInProject(projectID,selectedTeams)) {
+            projectService.findByProjectID(Long.parseLong(projectID));
+            if (projectService.deleteTeamInProject(Integer.parseInt(projectID),selectedTeams)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             } else {
@@ -137,14 +177,32 @@ public class ProjectController {
         }
     }
     @GetMapping("/getProjectByRoom/{roomID}")
-    public ResponseEntity<List<Project>> getProjectByRoom(@PathVariable int roomID) {
-        List<Project> project = projectService.getListByRoomId(roomID);
-        return ResponseEntity.ok(project);
+    public ResponseEntity<Object> getProjectByRoom(@PathVariable String roomID) {
+        if (!projectService.CheckProjectID(roomID)) {
+            String message = "RoomID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try{
+            roomService.findByID(Integer.parseInt(roomID));
+            List<Project> project = projectService.getListByRoomId(Integer.parseInt(roomID));
+            if(project==null||project.isEmpty()){
+                String message = "No project by room";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+            return ResponseEntity.ok(project);
+        }catch(NoSuchElementException e){
+            String message = "No room with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
     }
 
     @GetMapping("/getAllProject")
-    public ResponseEntity<List<Project>> getAllProject() {
+    public ResponseEntity<Object> getAllProject() {
         List<Project> project = projectService.getList();
+        if(project==null||project.isEmpty()){
+            String message = "No project ";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(project);
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Table(name = "SkillDomain")
+@Table(name = "skill_domain")
 public class SkillDomain {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
