@@ -2,10 +2,12 @@ package com.phuquy.controller;
 
 
 import com.phuquy.service.*;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
@@ -16,6 +18,7 @@ import java.util.Map;
 public class AuthenticationController {
 
     private final AuthService service;
+    private final UserService userService;
 
     @PostMapping("/authenticate")
     public ResponseEntity<String> authenticate(@RequestParam String username,@RequestParam String password, HttpServletResponse response) throws Exception {
@@ -29,19 +32,31 @@ public class AuthenticationController {
     }
     @PostMapping("/registerUser")
     public ResponseEntity<String> toRegister(@RequestBody Map<String,String> data){
+        String username = data.get("username");
+        String email = data.get("email");
+        if(userService.CheckUsernameExist(username)||userService.CheckEmailExist(email)){
+            String message = "Username or email has exits";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         if(service.register(data)){
             String message = "Success";
             return ResponseEntity.status(HttpStatus.OK).body(message);
         }else{
-            String message = "Username or email has exits";
+            String message = "Invalid input data";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
     }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletResponse response){
-        service.logout(response);
-        String message = "Success";
-        return ResponseEntity.status(HttpStatus.OK).body(message);
+        try{
+            service.logout(response);
+            String message = "Success";
+            return ResponseEntity.status(HttpStatus.OK).body(message);
+        }catch (Exception e){
+            String message = "e";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+
     }
 }

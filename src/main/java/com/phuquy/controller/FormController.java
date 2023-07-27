@@ -7,7 +7,6 @@ import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -39,10 +38,14 @@ public class FormController {
     }
 
     @PostMapping("/submitUserRate/{formID}")
-    public ResponseEntity<String> submitUserRate(@PathVariable int formID, @RequestBody Map<String,String> data, HttpServletRequest request){
+    public ResponseEntity<String> submitUserRate(@PathVariable String formID, @RequestBody Map<String,String> data, HttpServletRequest request){
+        if(!formService.CheckFormID(formID)){
+            String message = "FormID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            formService.getFormById(formID);
-            if (userRateService.submitRate(formID,data,request)) {
+            formService.getFormById(Long.parseLong(formID));
+            if (userRateService.submitRate(Integer.parseInt(formID),data,request)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             } else {
@@ -58,95 +61,171 @@ public class FormController {
     }
 
     @GetMapping("/getSkillDomainAndProgressInForm/{formID}")
-    public ResponseEntity<Object[]> getSkillDomainAndProgressInForm(@PathVariable int formID,HttpServletRequest request) throws Exception {
-        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
-        User user = userService.findUserByUsername(username);
-        if(!formParticipantService.checkParticipantInForm(formID, (int) user.getUser_id()) && !formService.checkOwnerInForm(formID, (int) user.getUser_id())){
-            return ResponseEntity.ok(new ArrayList[]{new ArrayList<>()});
+    public ResponseEntity<Object> getSkillDomainAndProgressInForm(@PathVariable String formID,HttpServletRequest request) throws Exception {
+        if(!formService.CheckFormID(formID)){
+            String message = "FormID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
-        else {
-            List<SkillDomain> listDomain = skillDomainService.getListDomainNameByFormID(formID);
-            for (SkillDomain domain : listDomain) {
-                if (formService.checkDomainHasRate((int) user.getUser_id(), formID, domain.getDomainID())) {
-                    domain.setStatus("Finish");
-                } else {
-                    domain.setStatus("Unfinished");
-                }
+        try{
+            int intFormID =  Integer.parseInt(formID);
+            formService.getFormById(intFormID);
+
+            String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
+            User user = userService.findUserByUsername(username);
+            if(!formParticipantService.checkParticipantInForm(intFormID, (int) user.getUser_id())){
+                String message = "Can't access this form";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
             }
-            Object[] array1 = new List[]{listDomain};
-            return ResponseEntity.ok(array1);
+            else {
+                List<SkillDomain> listDomain = skillDomainService.getListDomainNameByFormID(intFormID);
+                if(listDomain==null||listDomain.isEmpty()){
+                    String message = "This form not have data Domain";
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+                }
+                for (SkillDomain domain : listDomain) {
+                    if (formService.checkDomainHasRate((int) user.getUser_id(), intFormID, domain.getDomainID())) {
+                        domain.setStatus("Finish");
+                    } else {
+                        domain.setStatus("Unfinished");
+                    }
+                }
+                Object[] array1 = new List[]{listDomain};
+                return ResponseEntity.ok(array1);
+            }
+        }catch (NoSuchElementException e){
+            String message = "No form with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
     }
-
     @GetMapping("/form/{formID}/getSelfRate/{domainID}")
-    public ResponseEntity<Object[]> getSelfRateByFormAndDomain(HttpServletRequest request,@PathVariable("formID") int formID, @PathVariable("domainID") int domainID) throws Exception {
-        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
-        //Get userID from username
-        User user = userService.findUserByUsername(username);
-        List<Skill> skillList = skillService.getListByDomainID(domainID);
-        List<UserRate> listUserRate = new ArrayList<>();
-        for (Skill skill : skillList) {
-            UserRate userRate = userRateService.findByUserAndSkillAndForm(user,skill,formService.getFormById(formID));
-            listUserRate.add(userRate);
+    public ResponseEntity<Object> getSelfRateByFormAndDomain(HttpServletRequest request,@PathVariable("formID") String formID, @PathVariable("domainID") String domainID) throws Exception {
+        if(!formService.CheckFormID(formID)||!skillDomainService.CheckDomainID(domainID)){
+            String message = "FormID / DomainID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
-        Object[] array1 = new List[]{
-                skillList,
-                listUserRate
-        };
-        return ResponseEntity.ok(array1);
+        try {
+            int intFormID = Integer.parseInt(formID);
+            int intDomainID = Integer.parseInt(domainID);
+            formService.getFormById(intFormID);
+            skillDomainService.findById(intDomainID);
+            //Get userID from username
+            String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
+            User user = userService.findUserByUsername(username);
+
+            List<Skill> skillList = skillService.getListByDomainID(intDomainID);
+            if(skillList==null||skillList.isEmpty()){
+                String message = "Domain has no skill";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+            //If in a Domain in Skill , have 4 skill and user just submit 2 , 2 skill was not submitted will display NULL
+            List<UserRate> listUserRate = new ArrayList<>();
+            for (Skill skill : skillList) {
+                UserRate userRate = userRateService.findByUserAndSkillAndForm(user,skill,formService.getFormById(intFormID));
+                listUserRate.add(userRate);
+            }
+            return ResponseEntity.ok(listUserRate);
+        } catch (NoSuchElementException e) {
+            String message = "No Form/Domain with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
     }
     @GetMapping("/formDataByID/{formID}")
-    public ResponseEntity<Form> formDataByID(@PathVariable("formID") int formID){
-        Form form = formService.getFormById(formID);
-        return ResponseEntity.ok(form);
+    public ResponseEntity<Object> formDataByID(@PathVariable("formID") String formID){
+        if(!formService.CheckFormID(formID)){
+            String message = "FormID  only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try{
+            Form form = formService.getFormById(Long.parseLong(formID));
+            return ResponseEntity.ok(form);
+        }catch (NoSuchElementException e){
+            String message = "No Form with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
     }
 
     @GetMapping("/getInvitedMemberInForm/{formID}")
-    public ResponseEntity<Object> getInvitedMemberInForm(@PathVariable int formID,HttpServletRequest request) throws Exception {
-        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
-        User user = userService.findUserByUsername(username);
-        if(!formService.checkOwnerInForm(formID, (int) user.getUser_id())
-                && !formService.checkManagerInForm(formID, (int) user.getUser_id())){
-            return ResponseEntity.ok(new String[]{""});
-        }else {
-            Object array = formParticipantService.formParticipantList(formID);
-            return ResponseEntity.ok(array);
+    public ResponseEntity<Object> getInvitedMemberInForm(@PathVariable String formID,HttpServletRequest request) throws Exception {
+        if(!formService.CheckFormID(formID)){
+            String message = "FormID  only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try{
+            int intFormID = Integer.parseInt(formID);
+            formService.getFormById(intFormID);
+            String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
+            User user = userService.findUserByUsername(username);
+            if(!formService.checkOwnerInForm(intFormID, (int) user.getUser_id())
+                    && !formService.checkManagerInForm(intFormID, (int) user.getUser_id())){
+                String message = "Can't access this form";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }else {
+                List<User> userList = formParticipantService.formParticipantListByFormID(intFormID);
+                if(userList == null||userList.isEmpty()){
+                    String message = "No user in this form";
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+                }
+                return ResponseEntity.ok(userList);
+            }
+        }catch (NoSuchElementException e){
+            String message = "No Form with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
     }
     @GetMapping("/searchUserNotInForm")
-    public ResponseEntity<List<User>> searchUserNotInForm(@RequestParam("emailUser") String emailUser,@RequestParam int formID) {
+    public ResponseEntity<Object> searchUserNotInForm(@RequestParam("emailUser") String emailUser,@RequestParam int formID) {
         // Logic to perform search based on the query
         List<User> searchResults = userService.findUserStartWithEmail(emailUser,formID);
+        if(searchResults==null||searchResults.isEmpty()){
+            String message = "No have User";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/getFormOwner")
-    public ResponseEntity<List<Form>> getFormOwner(HttpServletRequest request) throws Exception {
+    public ResponseEntity<Object> getFormOwner(HttpServletRequest request) throws Exception {
         String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         List<Form> searchResults = formService.getListFormOwner((int) user.getUser_id());
+        if(searchResults==null||searchResults.isEmpty()){
+            String message = "No have form";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(searchResults);
     }
+
     @GetMapping("/getFormParticipant")
     public ResponseEntity<Object> getFormParticipant(HttpServletRequest request) throws Exception {
             String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
             User user = userService.findUserByUsername(username);
             List<Form> searchResults = formService.getFormHasParticipant((int) user.getUser_id());
-
+        if(searchResults==null||searchResults.isEmpty()){
+            String message = "No have form";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
             return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/getFormManager")
-    public ResponseEntity<List<Form>> getFormManager(HttpServletRequest request) throws Exception {
+    public ResponseEntity<Object> getFormManager(HttpServletRequest request) throws Exception {
         String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         List<Form> searchResults = formService.getListFormManager((int) user.getUser_id());
+        if(searchResults==null||searchResults.isEmpty()){
+            String message = "No have form";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(searchResults);
     }
 
     @PostMapping("/form/{formID}/addInvitedMemberToForm")
-    public ResponseEntity<String> addInvitedMemberToForm(@RequestParam String listUserID, @PathVariable int formID, HttpServletRequest request){
+    public ResponseEntity<String> addInvitedMemberToForm(@RequestParam String listUserID, @PathVariable String formID, HttpServletRequest request){
+        if(!formService.CheckFormID(formID)){
+            String message = "FormID  only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            formService.getFormById(formID);
-            if (formParticipantService.addInvitedMemberToForm(listUserID,formID,request)) {
+            formService.getFormById(Long.parseLong(formID));
+            if (formParticipantService.addInvitedMemberToForm(listUserID, Integer.parseInt(formID),request)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             } else {
@@ -163,12 +242,17 @@ public class FormController {
     }
     //Add a team (contains all member) to a form.
     @PostMapping("/form/{formID}/addTeamToForm/{teamID}")
-    public ResponseEntity<String> addTeamToForm(@PathVariable int formID, @PathVariable int teamID) {
-
+    public ResponseEntity<String> addTeamToForm(@PathVariable String formID, @PathVariable String teamID) {
+        if(!formService.CheckFormID(formID)||!teamService.CheckTeamID(teamID)){
+            String message = "FormID / ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            formService.getFormById(formID);
-            teamService.findById(teamID);
-            if (formParticipantService.addMemberInTeamToForm(formID,teamID)) {
+            int intFormID = Integer.parseInt(formID);
+            int intTeamID = Integer.parseInt(teamID);
+            formService.getFormById(intFormID);
+            teamService.findById(intTeamID);
+            if (formParticipantService.addMemberInTeamToForm(intFormID,intTeamID)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             } else {
@@ -183,11 +267,17 @@ public class FormController {
     }
     //Add a project (contains all team - member) to a form.
     @PostMapping("/form/{formID}/addProjectToForm/{projectID}")
-    public ResponseEntity<?> addProjectToForm(@PathVariable int formID,@PathVariable int projectID) {
+    public ResponseEntity<?> addProjectToForm(@PathVariable String formID,@PathVariable String projectID) {
+        if(!formService.CheckFormID(formID)||!projectService.CheckProjectID(projectID)){
+            String message = "FormID / ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            formService.getFormById(formID);
-            projectService.findByProjectID(projectID);
-            if(formParticipantService.addProjectInRoomToForm(formID,projectID)){
+            int intFormID = Integer.parseInt(formID);
+            int intProjectID = Integer.parseInt(projectID);
+            formService.getFormById(intFormID);
+            projectService.findByProjectID(intProjectID);
+            if(formParticipantService.addProjectInRoomToForm(intFormID,intProjectID)){
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             }
@@ -202,11 +292,17 @@ public class FormController {
     }
     //Add a room (contains all project - team - member) to a form.
     @PostMapping("/form/{formID}/addRoomToForm/{roomID}")
-    public ResponseEntity<?> addRoomToForm(@PathVariable int formID,@PathVariable int roomID) {
+    public ResponseEntity<?> addRoomToForm(@PathVariable String formID,@PathVariable String roomID) {
+        if(!formService.CheckFormID(formID)||!roomService.CheckRoomID(roomID)){
+            String message = "FormID / RoomID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            formService.getFormById(formID);
-            roomService.findByID(roomID);
-            if(formParticipantService.addRoomToForm(formID,roomID)){
+            int intFormID = Integer.parseInt(formID);
+            int intRoomID = Integer.parseInt(roomID);
+            formService.getFormById(intFormID);
+            roomService.findByID(intRoomID);
+            if(formParticipantService.addRoomToForm(intFormID,intRoomID)){
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             }else{

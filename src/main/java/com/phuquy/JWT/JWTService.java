@@ -20,7 +20,7 @@ public class JWTService {
     //Access Token
     public static final int EXPIRE_TIME = 180000;
     //Refresh Token
-    public static final int EXPIRE_TIME_REFRESH = 7 * 24 * 60 * 60 * 1000;;
+    public static final int EXPIRE_TIME_REFRESH = 7 * 24 * 60 * 60 * 1000;
 
 
     public String generateTokenLogin(String username) {

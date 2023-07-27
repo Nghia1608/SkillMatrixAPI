@@ -33,7 +33,13 @@ public class FormService {
     private final SkillService skillService;
     @Autowired
     private UserRateService userRateService;
+    public boolean CheckFormID(String formID){
+        if(!formID.matches("\\d+") || formID.length()>9){
+            return false;
+        }
+        return true;
 
+    }
     public Form getFormById(long id){
         return repository.findById(id).get();
     }
@@ -95,7 +101,15 @@ public class FormService {
             String memberSurvey = data.get("memberSurvey");
             String skillDomainList = data.get("skillDomain");
             String projectSurvey = data.get("projectSurvey");
-
+            if (surveyName == null || surveyName.isEmpty() ||
+                    surveyDeadline == null || surveyDeadline.isEmpty() ||
+                    roomSurvey == null || roomSurvey.isEmpty() ||
+                    teamSurvey == null || teamSurvey.isEmpty() ||
+                    memberSurvey == null || memberSurvey.isEmpty() ||
+                    skillDomainList == null || skillDomainList.isEmpty() ||
+                    projectSurvey == null || projectSurvey.isEmpty()) {
+                    return false;
+            }
             if(!(validateInput(roomSurvey) &&validateInput(projectSurvey)
                     && validateInput(teamSurvey) && validateInput(memberSurvey) && validateInput(skillDomainList))){
                 return false;
@@ -123,6 +137,9 @@ public class FormService {
                 }
                 for (String room : roomSurveyArray) {
                     Room roomID = roomService.findByID(Integer.parseInt(room));
+                    if(roomID==null){
+                        continue;
+                    }
                     formParticipantService.addRoomToForm(randomNumber,roomID.getRoomID());
                 }
             }
@@ -135,6 +152,9 @@ public class FormService {
                 }
                 for (String project : projectSurveyArray) {
                     Project projectID = projectService.findByProjectID(Long.parseLong(project));
+                    if(projectID==null){
+                        continue;
+                    }
                     formParticipantService.addRoomToForm(randomNumber, (int) projectID.getProjectID());
                 }
             }
@@ -146,8 +166,11 @@ public class FormService {
                     teamSurveyArray = new String[]{teamSurvey};
                 }
                 for (String team : teamSurveyArray) {
-                    Team team1 = teamService.findById(Integer.parseInt(team));
-                    formParticipantService.addProjectInRoomToForm(randomNumber,team1.getTeamID()    );
+                    Team teamInList = teamService.findById(Integer.parseInt(team));
+                    if(teamInList==null){
+                        continue;
+                    }
+                    formParticipantService.addProjectInRoomToForm(randomNumber,teamInList.getTeamID()    );
                 }
             }
 
@@ -163,6 +186,9 @@ public class FormService {
                     //set userID
                     User userToSet = new User();
                     User user = userService.findById(Long.parseLong(member));
+                    if(user==null){
+                        continue;
+                    }
                     if (formParticipantService.checkParticipantInForm(randomNumber, (int) user.getUser_id()) == false) {
                         userToSet.setUser_id(user.getUser_id());
                         FormParticipant formParticipant = new FormParticipant();
@@ -183,9 +209,12 @@ public class FormService {
                     skillDomainArray = new String[]{skillDomainList};
                 }
                 for (String skill : skillDomainArray) {
+                    SkillDomain skillDomain = skillDomainService.findByDomainName(skill);
+                    if(skillDomain==null){
+                        continue;
+                    }
                     FormDomain formDomain = new FormDomain();
                     formDomain.setForm(form);
-                    SkillDomain skillDomain = skillDomainService.findByDomainName(skill);
                     formDomain.setDomain(skillDomain);
                     formDomainService.save(formDomain);
                 }

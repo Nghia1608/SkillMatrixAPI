@@ -47,23 +47,30 @@ public class SecurityConfiguration {
                         "/configuration/security",
                         "/swagger-ui/**",
                         "/webjars/**",
-                        "/swagger-ui.html",
-                        "/auth/authenticate/**"
+                        "/swagger-ui.html"
                 )
                 .permitAll()
-                .requestMatchers(POST,"/auth/registerUser").hasAnyAuthority("Admin")
-                .requestMatchers("/auth/**").authenticated()
-                .requestMatchers("/participant/submitUserRate/**").authenticated()
+                .requestMatchers(POST,"/auth/authenticate/**").permitAll()
+                .requestMatchers(POST,"/auth/registerUser/**").hasAnyAuthority("Admin")
+                .requestMatchers(POST,"/auth/logout/**").permitAll()
+                .requestMatchers(POST,"/participant/submitUserRate/**").hasAnyAuthority("Member")
                 .requestMatchers(POST,"/participant/**").hasAnyAuthority("Manager")
                 .requestMatchers("/manager/**").hasAnyAuthority("Manager")
-                .requestMatchers(POST,"/skill/**").hasAnyAuthority("Admin")
-                .requestMatchers(POST,"/skillDomain/**").hasAnyAuthority("Admin")
-                .requestMatchers(POST,"/team/**").hasAnyAuthority("Admin")
-                .requestMatchers(POST, "/project/**").hasAnyAuthority("Admin")
-                .requestMatchers("/skill/**").hasAnyAuthority("Manager")
-                .requestMatchers("/skillDomain/**").hasAnyAuthority("Manager")
-                .requestMatchers("/team/**").hasAnyAuthority("Manager")
-                .requestMatchers( "/project/**").hasAnyAuthority("Manager")
+
+                .requestMatchers(GET,"/skill/**").hasAnyAuthority("Manager")
+                .requestMatchers(GET,"/skillDomain/**").hasAnyAuthority("Manager")
+                .requestMatchers(GET,"/team/**").hasAnyAuthority("Manager")
+                .requestMatchers( GET,"/project/**").hasAnyAuthority("Manager")
+                .requestMatchers( GET,"/room/**").hasAnyAuthority("Manager")
+
+                .requestMatchers(POST,"/skill/addNewSkill/**").hasAnyAuthority("Admin", "Manager")
+                .requestMatchers(DELETE,"/skill/deleteSkill/**").hasAnyAuthority("Admin", "Manager")
+                .requestMatchers("/skill/**").hasAnyAuthority("Admin")
+                .requestMatchers("/skillDomain/**").hasAnyAuthority("Admin")
+                .requestMatchers("/team/**").hasAnyAuthority("Admin")
+                .requestMatchers( "/project/**").hasAnyAuthority("Admin")
+                .requestMatchers( "/room/**").hasAnyAuthority("Admin")
+
                 .anyRequest()
                 .authenticated()
                 .and()
@@ -72,6 +79,7 @@ public class SecurityConfiguration {
                 .and()
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout()
         ;
 
         return http.build();

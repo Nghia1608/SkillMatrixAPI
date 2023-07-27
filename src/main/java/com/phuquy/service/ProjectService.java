@@ -14,7 +14,12 @@ public class ProjectService {
     private final TeamService teamService;
     private final TeamProjectService teamProjectService;
     private final RoomService roomService;
-
+    public boolean CheckProjectID(String projectID){
+        if(!projectID.matches("\\d+") || projectID.length()>9){
+            return false;
+        }
+        return true;
+    }
     public List<Project> getList(){ return repository.findAll(); }
     public List<Project> getListByRoomId(int id){ return repository.findByRoom_RoomID(id); }
     public void save(Project project){ repository.save(project); }
@@ -35,6 +40,7 @@ public class ProjectService {
         }
         return false;
     }
+
     public static boolean validateInput(String x) {
         String pattern = "^\\d+(,\\d+)*$";
         Pattern regex = Pattern.compile(pattern);

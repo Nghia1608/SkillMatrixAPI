@@ -40,17 +40,17 @@ public class FormParticipantService {
             return false;
         }
     }
-    public List<User> formParticipantList(int formID){
-        return formParticipantRepository.findUserHasParticipant(formID);
-    }
 
-    public List<User> formParticipantListInManagerPage(int formID){
-        return formParticipantRepository.findUserHasParticipantInManagerPage(formID);
+    public List<User> formParticipantListByFormID(int formID){
+        return formParticipantRepository.findUserHasParticipantInForm(formID);
     }
 
     public String calculateProgress(int formID, int userID){
         List<SkillDomain> skillDomainHasRate = skillDomainService.getListDomainNameHasRateAndSelfRate0(userID,formID);
         List<SkillDomain> skillDomainNotRate = skillDomainService.getListDomainNameByFormID(formID);
+        if(skillDomainNotRate==null||skillDomainNotRate.isEmpty()){
+            return "Empty";
+        }
         float countRate = skillDomainHasRate.size();
         float countNotRate = skillDomainNotRate.size();
         float progress = (countRate / countNotRate) * 100;

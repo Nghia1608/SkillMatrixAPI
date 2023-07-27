@@ -119,4 +119,10 @@ public class SkillDomainService {
         }
         return false;
     }
+    public boolean CheckDomainID(String domainID){
+        if(!domainID.matches("\\d+") || domainID.length()>9){
+            return false;
+        }
+        return true;
+    }
 }

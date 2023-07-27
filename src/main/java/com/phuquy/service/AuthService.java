@@ -3,12 +3,8 @@ package com.phuquy.service;
 import com.phuquy.entity.*;
 import com.phuquy.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -43,13 +39,25 @@ public class AuthService{
         try {
             String username = data.get("username");
             String password = data.get("password");
-            String passEncrypt = encryptService.encrypt(password);
             String email = data.get("email");
             String gender = data.get("gender");
             String birth = data.get("birth");
             String phone = data.get("phone");
-            int roleID = Integer.parseInt(data.get("roleID"));
-            int teamID = Integer.parseInt(data.get("teamID"));
+            String roleID = data.get("roleID");
+            String teamID = data.get("teamID");
+            //Check data map
+            if (username == null || username.isEmpty() ||
+                    password == null || password.isEmpty() ||
+                    email == null || email.isEmpty() ||
+                    gender == null || gender.isEmpty() ||
+                    birth == null || birth.isEmpty() ||
+                    phone == null || phone.isEmpty() ||
+                    roleID == null || roleID.isEmpty() ||
+                    teamID == null || teamID.isEmpty()) {
+                return false;
+            }
+            String passEncrypt = encryptService.encrypt(password);
+
             //Check data
             if(userService.CheckUsernameExist(username)||userService.CheckEmailExist(email)){
                 return false;
@@ -64,6 +72,10 @@ public class AuthService{
             if(!email.matches(emailPattern)){
                 return false;
             }
+            //Search team and Role to check Exception before save user
+            Role role = roleService.findById(Integer.parseInt(roleID));
+            Team team = teamService.findById(Integer.parseInt(teamID));
+
             //Save to user table
             User user = new User();
             user.setUsername(username);
@@ -77,13 +89,11 @@ public class AuthService{
             //Save to user_role table
             UserRole userRole = new UserRole();
             User userHasSave = userService.findUserByUsername(username);
-            Role role = roleService.findById(roleID);
             userRole.setUser(userHasSave);
             userRole.setRole(role);
             userRoleService.save(userRole);
             //Save to teamMember
             TeamMember teamMember = new TeamMember();
-            Team team = teamService.findById(teamID);
             teamMember.setTeam(team);
             teamMember.setUser(userHasSave);
             teamMemberService.save(teamMember);
@@ -105,6 +115,5 @@ public class AuthService{
         }
         return true;
     }
-
 
 }

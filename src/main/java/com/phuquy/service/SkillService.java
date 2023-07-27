@@ -61,5 +61,11 @@ public class SkillService {
     public Skill findById(int id){
         return skillRepository.findById(id).get();
     }
-    public Skill findBySkillName(String name){ return skillRepository.findBySkillName(name); };
+    public Skill findBySkillName(String name){ return skillRepository.findBySkillName(name); }
+    public boolean CheckSkillID(String skillID){
+        if(!skillID.matches("\\d+") || skillID.length()>9){
+            return false;
+        }
+        return true;
+    }
 }

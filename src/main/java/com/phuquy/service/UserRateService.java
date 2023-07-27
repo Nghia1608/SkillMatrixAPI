@@ -59,6 +59,10 @@ public class UserRateService {
         try{
             String skillID = data.get("skillID");
             String rate = data.get("rate");
+            if (skillID == null || skillID.isEmpty() ||
+                    rate == null || rate.isEmpty()) {
+                return false;
+            }
             if(!validateInput(skillID) || !validateInput(rate)){
                 return false;
             }
@@ -102,7 +106,12 @@ public class UserRateService {
         try{
             String skillID = data.get("skillID");
             String rate = data.get("rate");
-            int userID = Integer.parseInt(data.get("userIDToSubmit"));
+            String userID = data.get("userIDToSubmit");
+            if (skillID == null || skillID.isEmpty() ||
+                    userID == null || userID.isEmpty() ||
+                    rate == null || rate.isEmpty()) {
+                return false;
+            }
             if(!validateInput(skillID) || !validateInput(rate)){
                 return false;
             }
@@ -124,7 +133,7 @@ public class UserRateService {
                     && !formService.checkManagerInForm(formID, (int) managerCurrent.getUser_id())){
                 return false;
             }else {
-                User user = userService.findUserByUserID(userID);
+                User user = userService.findUserByUserID(Integer.parseInt(userID));
                 Form form = formService.getFormById(formID);
                 for(int i=0;i<listSkillID.length;i++){
                     Skill skill = skillService.findById(Integer.parseInt(listSkillID[i]));
