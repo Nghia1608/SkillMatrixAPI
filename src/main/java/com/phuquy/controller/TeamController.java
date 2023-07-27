@@ -25,7 +25,6 @@ public class TeamController {
     private final TeamMemberService teamMemberService;
     private final UserService userService;
 
-
     @PostMapping("/addNewTeam")
     public ResponseEntity<String> addNewTeam(@RequestParam String teamName){
         Team team = new Team();
@@ -36,15 +35,19 @@ public class TeamController {
             String message = "Success";
             return ResponseEntity.status(HttpStatus.OK).body(message);
         }else{
-            String message = "Only allow a-z and Space, Length must < 50";
+            String message = "Team name only allow a-z and Space, Length must < 50";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
     }
     @PostMapping("/addUserToTeam")
-    public ResponseEntity<String> addUserToTeam(@RequestParam int teamID,@RequestParam String listUserID){
+    public ResponseEntity<String> addUserToTeam(@RequestParam String teamID,@RequestParam String listUserID){
+        if(!teamService.CheckTeamID(teamID)){
+            String message = "TeamID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            teamService.findById(teamID);
-                if (teamService.addMemberToTeam(teamID, listUserID)) {
+            teamService.findById(Integer.parseInt(teamID));
+                if (teamService.addMemberToTeam(Integer.parseInt(teamID), listUserID)) {
                     String message = "Success";
                     return ResponseEntity.status(HttpStatus.OK).body(message);
                 } else {
@@ -62,30 +65,79 @@ public class TeamController {
         return ResponseEntity.ok(team);
     }
     @GetMapping("/listMemberInTeam/{teamID}")
-    public ResponseEntity<Object> listMemberInTeam(@PathVariable int teamID){
-        Object listUser = userService.findUserInTeam(teamID);
-        return ResponseEntity.ok(listUser);
+    public ResponseEntity<Object> listMemberInTeam(@PathVariable String teamID){
+        if(!teamService.CheckTeamID(teamID)){
+            String message = "TeamID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try {
+            teamService.findById(Integer.parseInt(teamID));
+            List<User> listUser = userService.findUserInTeam(Integer.parseInt(teamID));
+            if(listUser==null||listUser.isEmpty()){
+                String message = "No user in team";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+            return ResponseEntity.ok(listUser);
+        } catch (NoSuchElementException e) {
+            String message = "No team with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
     }
     @GetMapping("/listAllTeam")
-    public ResponseEntity<List<Team>> getListTeam() {
+    public ResponseEntity<Object> getListTeam() {
         List<Team> searchResults = teamService.listAll();
+        if(searchResults==null||searchResults.isEmpty()){
+            String message = "No team ";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(searchResults);
     }
     @GetMapping("/searchMemberNotInThisTeam/{teamID}")
-    public ResponseEntity<List<User>> searchMemberNotInThisTeam(@RequestParam("emailUser") String emailUser,@PathVariable int teamID) {
-        List<User> searchResults = teamMemberService.findUserStartWithEmail(emailUser,teamID);
-        return ResponseEntity.ok(searchResults);
+    public ResponseEntity<Object> searchMemberNotInThisTeam(@RequestParam("emailUser") String emailUser,@PathVariable String teamID) {
+        if(!teamService.CheckTeamID(teamID)){
+            String message = "TeamID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try {
+            teamService.findById(Integer.parseInt(teamID));
+            List<User> searchResults = teamMemberService.findUserStartWithEmail(emailUser.trim(), Integer.parseInt(teamID));
+            if(searchResults==null||searchResults.isEmpty()){
+                String message = "No member";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+            return ResponseEntity.ok(searchResults);
+        } catch (NoSuchElementException e) {
+            String message = "No team with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
     }
 
     @GetMapping("/getTeamByProject/{projectID}")
-    public ResponseEntity<List<Team>> getTeamByProject(@PathVariable int projectID) {
-        List<Team> team = teamService.findByProjectId(projectID);
-        return ResponseEntity.ok(team);
+    public ResponseEntity<Object> getTeamByProject(@PathVariable String projectID) {
+        if(!teamService.CheckTeamID(projectID)){
+            String message = "ProjectID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try {
+            List<Team> team = teamService.findByProjectId(Integer.parseInt(projectID));
+            if(team==null||team.isEmpty()){
+                String message = "No team in this project";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+            return ResponseEntity.ok(team);
+        } catch (NoSuchElementException e) {
+            String message = "No project with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
     }
     @PostMapping("/enable/{teamID}")
-    public ResponseEntity<?> enable(@PathVariable("teamID") int teamID){
+    public ResponseEntity<?> enable(@PathVariable("teamID") String teamID){
+        if(!teamService.CheckTeamID(teamID)){
+            String message = "TeamID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            Team team = teamService.findById(teamID);
+            Team team = teamService.findById(Integer.parseInt(teamID));
                 team.setStatus(true);
                 teamService.save(team);
                 String message = "Success";
@@ -98,9 +150,13 @@ public class TeamController {
     }
 
     @PostMapping("/disable/{teamID}")
-    public ResponseEntity<?> disable(@PathVariable("teamID") int teamID){
+    public ResponseEntity<?> disable(@PathVariable("teamID") String teamID){
+        if(!teamService.CheckTeamID(teamID)){
+            String message = "TeamID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            Team team = teamService.findById(teamID);
+            Team team = teamService.findById(Integer.parseInt(teamID));
             team.setStatus(false);
             teamService.save(team);
             String message = "Success";

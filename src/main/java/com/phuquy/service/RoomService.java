@@ -34,5 +34,10 @@ public class RoomService {
     }
 
     public List<Room> getList(){ return repository.findAll(); }
-
+    public boolean CheckRoomID(String roomID){
+        if(!roomID.matches("\\d+") || roomID.length()>9){
+            return false;
+        }
+        return true;
+    }
 }

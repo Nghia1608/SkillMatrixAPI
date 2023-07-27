@@ -7,15 +7,12 @@ import com.phuquy.entity.User;
 import com.phuquy.repository.SkillRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +43,8 @@ public class SkillService {
 
     public void delete(Skill skill){ skillRepository.delete(skill);
     }
-    public boolean deleteSkill(int skillID, HttpServletRequest request){
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+    public boolean deleteSkill(int skillID, HttpServletRequest request) throws Exception {
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         Skill skill = findById(skillID);
         SkillDomain skillDomain = skillDomainService.findById(skill.getDomain().getDomainID());
@@ -64,5 +61,11 @@ public class SkillService {
     public Skill findById(int id){
         return skillRepository.findById(id).get();
     }
-    public Skill findBySkillName(String name){ return skillRepository.findBySkillName(name); };
+    public Skill findBySkillName(String name){ return skillRepository.findBySkillName(name); }
+    public boolean CheckSkillID(String skillID){
+        if(!skillID.matches("\\d+") || skillID.length()>9){
+            return false;
+        }
+        return true;
+    }
 }

@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -58,87 +55,105 @@ public class UserRateService {
         Matcher matcher = regex.matcher(x);
         return matcher.matches();
     }
-    public boolean submitRate(int formID,Map<String, String> data, HttpServletRequest request) {
-        String skillID = data.get("skillID");
-        String rate = data.get("rate");
-        if(!validateInput(skillID) || !validateInput(rate)){
-            return false;
-        }
-        String[] listSkillID;
-        if(skillID.contains(",")){
-            listSkillID = skillID.split(",");
-        }else{
-            listSkillID = new String[]{skillID};
-        }
-        String[] listRate;
-        if(rate.contains(",")){
-            listRate = rate.split(",");
-        }else{
-            listRate = new String[]{rate};
-        }
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
-        User user = userService.findUserByUsername(username);
-        Form form = formService.getFormById(formID);
-        for(int i=0;i<listSkillID.length;i++){
-            Skill skill = skillService.findById(Integer.parseInt(listSkillID[i]));
-            if(checkExist(user,skill,form)){
-                UserRate userRate1 = findByUserAndSkillAndForm(user,skill,form);
-                userRate1.setSelfRate(Integer.parseInt(listRate[i]));
-                save(userRate1);
-            }else{
-                UserRate userRate1 = new UserRate();
-                userRate1.setForm(form);
-                userRate1.setUserID(user);
-                userRate1.setSkillID(skill);
-                userRate1.setSelfRate(Integer.parseInt(listRate[i]));
-                userRate1.setManagerRate(0);
-                save(userRate1);
+    public boolean submitRate(int formID,Map<String, String> data, HttpServletRequest request) throws Exception {
+        try{
+            String skillID = data.get("skillID");
+            String rate = data.get("rate");
+            if (skillID == null || skillID.isEmpty() ||
+                    rate == null || rate.isEmpty()) {
+                return false;
             }
-        }
-        return true;
-    }
-    public boolean submitManagerRate(int formID,Map<String, String> data, HttpServletRequest request) {
-        String skillID = data.get("skillID");
-        String rate = data.get("rate");
-        int userID = Integer.parseInt(data.get("userIDToSubmit"));
-        if(!validateInput(skillID) || !validateInput(rate)){
-            return false;
-        }
-        String[] listSkillID;
-        if(skillID.contains(",")){
-            listSkillID = skillID.split(",");
-        }else{
-            listSkillID = new String[]{skillID};
-        }
-        String[] listRate;
-        if(rate.contains(",")){
-            listRate = rate.split(",");
-        }else{
-            listRate = new String[]{rate};
-        }
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
-        User managerCurrent = userService.findUserByUsername(username);
-        if(!formService.checkOwnerInForm(formID, (int) managerCurrent.getUser_id())
-                && !formService.checkManagerInForm(formID, (int) managerCurrent.getUser_id())){
-            return false;
-        }else {
-            User user = userService.findUserByUserID(userID);
+            if(!validateInput(skillID) || !validateInput(rate)){
+                return false;
+            }
+            String[] listSkillID;
+            if(skillID.contains(",")){
+                listSkillID = skillID.split(",");
+            }else{
+                listSkillID = new String[]{skillID};
+            }
+            String[] listRate;
+            if(rate.contains(",")){
+                listRate = rate.split(",");
+            }else{
+                listRate = new String[]{rate};
+            }
+            String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
+            User user = userService.findUserByUsername(username);
             Form form = formService.getFormById(formID);
             for(int i=0;i<listSkillID.length;i++){
                 Skill skill = skillService.findById(Integer.parseInt(listSkillID[i]));
                 if(checkExist(user,skill,form)){
                     UserRate userRate1 = findByUserAndSkillAndForm(user,skill,form);
-                    userRate1.setManagerRate(Integer.parseInt(listRate[i]));
+                    userRate1.setSelfRate(Integer.parseInt(listRate[i]));
+                    save(userRate1);
+                }else{
+                    UserRate userRate1 = new UserRate();
+                    userRate1.setForm(form);
+                    userRate1.setUserID(user);
+                    userRate1.setSkillID(skill);
+                    userRate1.setSelfRate(Integer.parseInt(listRate[i]));
+                    userRate1.setManagerRate(0);
                     save(userRate1);
                 }
             }
             return true;
+        }catch (NoSuchElementException e){
+            return false;
         }
     }
+    public boolean submitManagerRate(int formID,Map<String, String> data, HttpServletRequest request) throws Exception {
+        try{
+            String skillID = data.get("skillID");
+            String rate = data.get("rate");
+            String userID = data.get("userIDToSubmit");
+            if (skillID == null || skillID.isEmpty() ||
+                    userID == null || userID.isEmpty() ||
+                    rate == null || rate.isEmpty()) {
+                return false;
+            }
+            if(!validateInput(skillID) || !validateInput(rate)){
+                return false;
+            }
+            String[] listSkillID;
+            if(skillID.contains(",")){
+                listSkillID = skillID.split(",");
+            }else{
+                listSkillID = new String[]{skillID};
+            }
+            String[] listRate;
+            if(rate.contains(",")){
+                listRate = rate.split(",");
+            }else{
+                listRate = new String[]{rate};
+            }
+            String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
+            User managerCurrent = userService.findUserByUsername(username);
+            if(!formService.checkOwnerInForm(formID, (int) managerCurrent.getUser_id())
+                    && !formService.checkManagerInForm(formID, (int) managerCurrent.getUser_id())){
+                return false;
+            }else {
+                User user = userService.findUserByUserID(Integer.parseInt(userID));
+                Form form = formService.getFormById(formID);
+                for(int i=0;i<listSkillID.length;i++){
+                    Skill skill = skillService.findById(Integer.parseInt(listSkillID[i]));
+                    if(checkExist(user,skill,form)){
+                        UserRate userRate1 = findByUserAndSkillAndForm(user,skill,form);
+                        userRate1.setManagerRate(Integer.parseInt(listRate[i]));
+                        save(userRate1);
+                    }
+                }
+                return true;
+            }
+        }catch (NoSuchElementException e){
+            return false;
+        }
 
-    public Object getAllDataUserRateByForm(int formID, HttpServletRequest request) {
+    }
+
+    public Object getAllDataUserRateByForm(int formID, HttpServletRequest request) throws Exception {
         List<SkillDomain> skillDomain = skillDomainService.getListDomainNameByFormID(formID);
-        String username = jwtService.getUsernameFromToken(cookieService.getCookie(request));
+        String username = jwtService.getUsernameFromToken(cookieService.getAccessToken(request));
         User user = userService.findUserByUsername(username);
         if(formParticipantService.checkParticipantInForm(formID, (int) user.getUser_id())==false){
             //Return empty []

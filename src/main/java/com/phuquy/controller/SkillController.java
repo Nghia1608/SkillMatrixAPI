@@ -21,27 +21,60 @@ public class SkillController {
 
 
     @GetMapping("/getSkillByDomain/{domainID}")
-    public ResponseEntity<List<Skill>> getSkillByDomain(@PathVariable int domainID) {
-        List<Skill> skill = skillService.getListByDomainID(domainID);
-        return ResponseEntity.ok(skill);
+    public ResponseEntity<Object> getSkillByDomain(@PathVariable String domainID) {
+        if(!skillService.CheckSkillID(domainID)){
+            String message = "DomainID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        try{
+            List<Skill> skill = skillService.getListByDomainID(Integer.parseInt(domainID));
+            if(skill==null||skill.isEmpty()){
+                String message = "No skill in domain";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+            }
+            return ResponseEntity.ok(skill);
+        }catch (Exception e){
+            String message = "No domain with this ID";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+
     }
     @GetMapping("/getAllSkillWithPaginate/")
-    public ResponseEntity<Page<Skill>> getAllSkillWithPaginate(@RequestParam("page") int page, @RequestParam("perPage") int perPage) {
-        Page<Skill> skill = skillService.getWithPaginate(page, perPage);
+    public ResponseEntity<Object> getAllSkillWithPaginate(@RequestParam("page") String page, @RequestParam("perPage") String perPage) {
+        if(!skillService.CheckSkillID(page) || !skillService.CheckSkillID(perPage)){
+            String message = "Data input only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        int pageInt = Integer.parseInt(page);
+        int perPageInt = Integer.parseInt(perPage);
+        Page<Skill> skill = skillService.getWithPaginate(pageInt, perPageInt);
+        if(skill==null||skill.isEmpty()){
+            String message = "No skill";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         return ResponseEntity.ok(skill);
     }
     @GetMapping("/getAmountOfSkill/{amount}")
-    public ResponseEntity<Object[]> getAmountOfSkill(@PathVariable int amount) {
+    public ResponseEntity<Object> getAmountOfSkill(@PathVariable String amount) {
+        if(!skillService.CheckSkillID(amount)){
+            String message = "Amount only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         List<Skill> skill = skillService.getAllSkill();
+        if(skill==null||skill.isEmpty()){
+            String message = "No have any  skill";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         int amountOfSkill = skill.size();
         int maxPage;
-        if(amountOfSkill<=amount){
+        int number =Integer.parseInt(amount);
+        if(amountOfSkill<= number){
             maxPage = 1;
         }else {
-            if(amountOfSkill % amount >  0){
-                maxPage = amountOfSkill / amount + 1;
+            if(amountOfSkill % number >  0){
+                maxPage = amountOfSkill / number + 1;
             }else{
-                maxPage = amountOfSkill / amount ;
+                maxPage = amountOfSkill / number ;
             }
         }
         Object[] amountOfItem = new Object[2];
@@ -50,15 +83,19 @@ public class SkillController {
         return ResponseEntity.ok(amountOfItem);
     }
     @PostMapping("/addNewSkill")
-    public ResponseEntity<String> addNewSkill(@RequestParam int domainID,@RequestParam String skillName){
+    public ResponseEntity<String> addNewSkill(@RequestParam String domainID,@RequestParam String skillName){
         if(!skillName.matches("[a-zA-Z ]+") || skillName.length()>50){
-            String message = "Only allow a-z and Space, Length must < 50";
+            String message = "Skill name only allow a-z and Space, Length must < 50";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
+        if(!skillService.CheckSkillID(domainID)){
+            String message = "DomainID only number and length < 10";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
         try{
             Skill skill = new Skill();
             skill.setSkillName(skillName);
-            skill.setDomain(skillDomainService.findById(domainID));
+            skill.setDomain(skillDomainService.findById(Integer.parseInt(domainID)));
             skillService.save(skill);
             String message = "Success";
             return ResponseEntity.status(HttpStatus.OK).body(message);
@@ -68,10 +105,14 @@ public class SkillController {
         }
     }
     @DeleteMapping("/deleteSkill/{skillID}")
-    public ResponseEntity<String> delete(@PathVariable("skillID") int skillID,HttpServletRequest request) {
+    public ResponseEntity<String> delete(@PathVariable("skillID") String skillID,HttpServletRequest request) {
+        if(!skillService.CheckSkillID(skillID)){
+            String message = "SkillID only number and length < 10";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        }
         try {
-            skillService.findById(skillID);
-            if (skillService.deleteSkill(skillID, request)) {
+            skillService.findById(Integer.parseInt(skillID));
+            if (skillService.deleteSkill(Integer.parseInt(skillID), request)) {
                 String message = "Success";
                 return ResponseEntity.status(HttpStatus.OK).body(message);
             } else {
@@ -81,6 +122,8 @@ public class SkillController {
         } catch (NoSuchElementException e) {
             String message = "No Skill with this ID";
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }
