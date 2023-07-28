@@ -5,6 +5,7 @@ import com.phuquy.repository.UserRepository;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import com.phuquy.service.EncryptService;
 >>>>>>> 45a4ffabb8a6088628e01b9dc274e89c5e80b2b8
@@ -13,6 +14,8 @@ import com.phuquy.service.EncryptService;
 >>>>>>> 45a4ffabb8a6088628e01b9dc274e89c5e80b2b8
 =======
 >>>>>>> 382ee50... update JWT - role
+=======
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
 import com.phuquy.service.UserRoleService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +37,8 @@ import org.springframework.http.ResponseEntity;
 >>>>>>> 45a4ffabb8a6088628e01b9dc274e89c5e80b2b8
 =======
 >>>>>>> 382ee50... update JWT - role
+=======
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,6 +58,7 @@ public class SecurityConfig extends OncePerRequestFilter{
     private final JWTService jwtService;
     private final UserRepository userRepository;
     private final UserRoleService userRoleService;
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -132,6 +139,8 @@ public class SecurityConfig extends OncePerRequestFilter{
 =======
 >>>>>>> 45a4ffabb8a6088628e01b9dc274e89c5e80b2b8
 =======
+=======
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) {
@@ -169,7 +178,10 @@ public class SecurityConfig extends OncePerRequestFilter{
                     username = jwtService.getUsernameFromToken(refreshToken);
                     com.phuquy.entity.User user = userRepository.findUserByUsername(username);
                     jwtService.generateTokenLogin(username);
+<<<<<<< HEAD
 >>>>>>> 382ee50... update JWT - role
+=======
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
                     if (user != null) {
                         List<GrantedAuthority> authorities = AuthorityUtils.createAuthorityList(userRoleService.getRoleByUsername(username).getRoleName());
                         UserDetails userDetails = new User(username, user.getPassword(), authorities);
@@ -177,8 +189,11 @@ public class SecurityConfig extends OncePerRequestFilter{
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 382ee50... update JWT - role
+=======
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
                                 null, userDetails.getAuthorities());
 
@@ -188,6 +203,7 @@ public class SecurityConfig extends OncePerRequestFilter{
                         String redirectUrl = request.getContextPath() + "/auth/login";
                         response.sendRedirect(redirectUrl);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
                         String newAccessToken = jwtService.generateTokenLogin(username);
                         String newRefreshToken = jwtService.refreshToken();
@@ -360,6 +376,8 @@ public class SecurityConfig extends OncePerRequestFilter{
 }
 >>>>>>> 45a4ffabb8a6088628e01b9dc274e89c5e80b2b8
 =======
+=======
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
                     }
                 }
             }
@@ -474,5 +492,9 @@ public class SecurityConfig extends OncePerRequestFilter{
         return parts[0];
     }
 
+<<<<<<< HEAD
 }
 >>>>>>> 382ee50... update JWT - role
+=======
+}
+>>>>>>> 382ee506a0b624f2440ee2d18d2c3bdeefb7d185
