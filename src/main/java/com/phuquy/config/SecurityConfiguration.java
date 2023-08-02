@@ -55,8 +55,12 @@ public class SecurityConfiguration {
                 .requestMatchers(POST, "/auth/registerUser/**").hasAnyAuthority("Admin")
 
                 .requestMatchers(POST,"/participant/submitUserRate/**").hasAnyAuthority("Member")
+                .requestMatchers(GET,"/participant/searchUserNotInForm/**").hasAnyAuthority("Manager")
+                .requestMatchers(GET,"/participant/getFormManager/**").hasAnyAuthority("Manager")
+                .requestMatchers(GET,"/participant/getFormOwner/**").hasAnyAuthority("Manager")
+                .requestMatchers(GET,"/participant/getInvitedMemberInForm/**").hasAnyAuthority("Manager")
+                .requestMatchers(GET,"/participant/**").hasAnyAuthority("Manager","Member")
                 .requestMatchers(POST,"/participant/**").hasAnyAuthority("Manager")
-                .requestMatchers("/manager/**").hasAnyAuthority("Manager")
 
                 .requestMatchers(GET,"/team/**").hasAnyAuthority("Admin", "Manager")
                 .requestMatchers( GET,"/project/**").hasAnyAuthority("Admin", "Manager")

@@ -7,7 +7,9 @@ import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
 
 import java.util.*;
 
@@ -28,11 +30,16 @@ public class FormController {
     private final TeamService teamService;
     @PostMapping("/formCreate")
     public ResponseEntity<String> formCreate(@RequestBody Map<String,String> data, HttpServletRequest request) throws Exception {
-            if (formService.createForm(data,request)) {
-                String message = "Success";
-                return ResponseEntity.status(HttpStatus.OK).body(message);
-            } else {
-                String message = "Invalid input data";
+            try{
+                if (formService.createForm(data,request)) {
+                    String message = "Success";
+                    return ResponseEntity.status(HttpStatus.OK).body(message);
+                } else {
+                    String message = "Invalid input data";
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+                }
+            }catch (HttpMediaTypeNotSupportedException ex){
+                String message = "Only allow data in type JSON";
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
             }
     }
